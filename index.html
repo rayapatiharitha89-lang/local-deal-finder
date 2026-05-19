@@ -142,7 +142,11 @@
     }
     .day-text { font-size: 12px; color: #94a3b8; line-height: 1.5; }
     .day-text b { color: #e2e8f0; }
-    .no-clearance { font-size: 12px; color: #475569; font-style: italic; }
+    .instore-note {
+      background: rgba(99,102,241,0.08); border: 1px solid rgba(99,102,241,0.2);
+      border-radius: 8px; padding: 10px 12px; font-size: 12px;
+      color: #a78bfa; margin-bottom: 10px; line-height: 1.5;
+    }
     .manual-tag {
       display: inline-block; font-size: 10px;
       background: rgba(251,191,36,0.15); border: 1px solid rgba(251,191,36,0.3);
@@ -202,61 +206,64 @@
 
 <script>
 
-// ── CLEARANCE LINKS — direct working URLs ──────────────
-const CLEARANCE_LINKS = {
-  "walmart":        "https://www.walmart.com/browse/clearance",
-  "target":         "https://www.target.com/c/clearance/-/N-5q0e1",
-  "costco":         "https://www.costco.com/hot-buys.html",
-  "sam's club":     "https://www.samsclub.com/savings",
-  "kroger":         "https://www.kroger.com/savings/cl/weeklyad",
-  "whole foods":    "https://www.wholefoodsmarket.com/sales-flyer",
-  "trader joe":     "https://www.traderjoes.com/home/fearless-flyer",
-  "aldi":           "https://www.aldi.us/en/weekly-specials/",
-  "publix":         "https://www.publix.com/savings/weekly-ad",
-  "safeway":        "https://www.safeway.com/weeklyad",
-  "wegmans":        "https://www.wegmans.com/sales-flyer/",
-  "food lion":      "https://www.foodlion.com/weeklyspecials/",
-  "giant":          "https://giantfood.com/weekly-flyer/",
-  "lidl":           "https://www.lidl.com/en/weekly-specials.htm",
-  "sprouts":        "https://www.sprouts.com/deals/",
-  "ollie":          "https://www.ollies.us/deals/",
-  "big lots":       "https://www.biglots.com/deals",
-  "dollar tree":    "https://www.dollartree.com/",
-  "dollar general": "https://www.dollargeneral.com/weekly-ad",
-  "five below":     "https://www.fivebelow.com/content/fivebelow/deals.html",
-  "family dollar":  "https://www.familydollar.com/weekly-ad/",
-  "best buy":       "https://www.bestbuy.com/site/electronics/open-box/pcmcat211400050026.c",
-  "cvs":            "https://www.cvs.com/weekly-ad/circulars",
-  "walgreens":      "https://www.walgreens.com/offers/offers.jsp",
-  "rite aid":       "https://www.riteaid.com/weekly-ad.html",
-  "home depot":     "https://www.homedepot.com/b/Clearance/N-5yc1vZc9gu",
-  "lowe":           "https://www.lowes.com/l/deals.html",
-  "ikea":           "https://www.ikea.com/us/en/offers/",
-  "old navy":       "https://www.oldnavy.com/c/clearance",
-  "gap":            "https://www.gap.com/browse/category.do?cid=1118660",
-  "h&m":            "https://www2.hm.com/en_us/sale.html",
-  "ross":           "https://www.rossstores.com/",
-  "tj maxx":        "https://www.tjmaxx.tjx.com/store/index.jsp",
-  "marshalls":      "https://www.marshalls.com/us/store/index.jsp",
-  "burlington":     "https://www.burlington.com/category/clearance",
-  "mcdonald":       "https://www.mcdonalds.com/us/en-us/deals.html",
-  "starbucks":      "https://www.starbucks.com/rewards",
-  "subway":         "https://www.subway.com/en-US/MenuNutrition/Menu/Deals",
-  "chipotle":       "https://www.chipotle.com/rewards",
-  "burger king":    "https://www.bk.com/offers",
-  "taco bell":      "https://www.tacobell.com/rewards",
-  "wendy":          "https://www.wendys.com/deals",
-  "dunkin":         "https://www.dunkindonuts.com/en/promotions",
-  "petco":          "https://www.petco.com/shop/en/petcostore/category/deals",
-  "petsmart":       "https://www.petsmart.com/featured-sale-items/",
-  "dick's":         "https://www.dickssportinggoods.com/f/clearance",
-  "rei":            "https://www.rei.com/rei-garage",
-  "academy":        "https://www.academy.com/c/clearance",
-  "meijer":         "https://www.meijer.com/shopping/weekly-deals.html",
-  "micro center":   "https://www.microcenter.com/site/content/weekly_ad.aspx",
+// ── STORES WITH ONLINE DEALS ONLY ─────────────────────
+// Removed: Ross, TJ Maxx, Marshalls, Ollie's, Burlington
+// These stores have NO online clearance pages
+
+const ONLINE_DEALS_STORES = {
+  "walmart":        { deals:"https://www.walmart.com/store-finder",                                    clearance:"https://www.walmart.com/browse/clearance",                                      hasOnline: true },
+  "target":         { deals:"https://www.target.com/c/target-circle-deals/-/N-4tfyn",                 clearance:"https://www.target.com/c/clearance/-/N-5q0e1",                                  hasOnline: true },
+  "costco":         { deals:"https://www.costco.com/hot-buys.html",                                   clearance:"https://www.costco.com/hot-buys.html",                                          hasOnline: true },
+  "sam's club":     { deals:"https://www.samsclub.com/instant-savings",                               clearance:"https://www.samsclub.com/savings",                                              hasOnline: true },
+  "kroger":         { deals:"https://www.kroger.com/savings/cl/weeklyad",                             clearance:"https://www.kroger.com/savings/cl/weeklyad",                                    hasOnline: true },
+  "whole foods":    { deals:"https://www.wholefoodsmarket.com/sales-flyer",                           clearance:"https://www.wholefoodsmarket.com/sales-flyer",                                  hasOnline: true },
+  "trader joe":     { deals:"https://www.traderjoes.com/home/fearless-flyer",                         clearance:"https://www.traderjoes.com/home/fearless-flyer",                                hasOnline: true },
+  "aldi":           { deals:"https://www.aldi.us/en/weekly-specials/",                                clearance:"https://www.aldi.us/en/weekly-specials/",                                       hasOnline: true },
+  "publix":         { deals:"https://www.publix.com/savings/weekly-ad",                               clearance:"https://www.publix.com/savings/weekly-ad",                                      hasOnline: true },
+  "safeway":        { deals:"https://www.safeway.com/weeklyad",                                       clearance:"https://www.safeway.com/weeklyad",                                              hasOnline: true },
+  "wegmans":        { deals:"https://www.wegmans.com/sales-flyer/",                                   clearance:"https://www.wegmans.com/sales-flyer/",                                          hasOnline: true },
+  "food lion":      { deals:"https://www.foodlion.com/weeklyspecials/",                               clearance:"https://www.foodlion.com/weeklyspecials/",                                      hasOnline: true },
+  "giant":          { deals:"https://giantfood.com/weekly-flyer/",                                    clearance:"https://giantfood.com/weekly-flyer/",                                           hasOnline: true },
+  "lidl":           { deals:"https://www.lidl.com/en/weekly-specials.htm",                            clearance:"https://www.lidl.com/en/weekly-specials.htm",                                   hasOnline: true },
+  "sprouts":        { deals:"https://www.sprouts.com/deals/",                                         clearance:"https://www.sprouts.com/deals/",                                                hasOnline: true },
+  "big lots":       { deals:"https://www.biglots.com/deals",                                          clearance:"https://www.biglots.com/deals",                                                 hasOnline: true },
+  "dollar tree":    { deals:"https://www.dollartree.com/",                                            clearance:"https://www.dollartree.com/",                                                   hasOnline: true },
+  "dollar general": { deals:"https://www.dollargeneral.com/weekly-ad",                               clearance:"https://www.dollargeneral.com/weekly-ad",                                       hasOnline: true },
+  "five below":     { deals:"https://www.fivebelow.com/content/fivebelow/deals.html",                clearance:"https://www.fivebelow.com/content/fivebelow/deals.html",                        hasOnline: true },
+  "family dollar":  { deals:"https://www.familydollar.com/weekly-ad/",                               clearance:"https://www.familydollar.com/weekly-ad/",                                       hasOnline: true },
+  "best buy":       { deals:"https://www.bestbuy.com/site/misc/deal-of-the-day/pcmcat248000050016.c", clearance:"https://www.bestbuy.com/site/electronics/open-box/pcmcat211400050026.c",        hasOnline: true },
+  "cvs":            { deals:"https://www.cvs.com/weekly-ad/circulars",                               clearance:"https://www.cvs.com/weekly-ad/circulars",                                       hasOnline: true },
+  "walgreens":      { deals:"https://www.walgreens.com/offers/offers.jsp",                            clearance:"https://www.walgreens.com/offers/offers.jsp",                                   hasOnline: true },
+  "rite aid":       { deals:"https://www.riteaid.com/weekly-ad.html",                                clearance:"https://www.riteaid.com/weekly-ad.html",                                        hasOnline: true },
+  "home depot":     { deals:"https://www.homedepot.com/b/Clearance/N-5yc1vZc9gu",                   clearance:"https://www.homedepot.com/b/Clearance/N-5yc1vZc9gu",                            hasOnline: true },
+  "lowe":           { deals:"https://www.lowes.com/l/deals.html",                                    clearance:"https://www.lowes.com/l/deals.html",                                            hasOnline: true },
+  "ikea":           { deals:"https://www.ikea.com/us/en/offers/",                                    clearance:"https://www.ikea.com/us/en/offers/",                                            hasOnline: true },
+  "old navy":       { deals:"https://www.oldnavy.com/c/clearance",                                   clearance:"https://www.oldnavy.com/c/clearance",                                           hasOnline: true },
+  "gap":            { deals:"https://www.gap.com/browse/category.do?cid=1118660",                    clearance:"https://www.gap.com/browse/category.do?cid=1118660",                            hasOnline: true },
+  "h&m":            { deals:"https://www2.hm.com/en_us/sale.html",                                   clearance:"https://www2.hm.com/en_us/sale.html",                                           hasOnline: true },
+  "mcdonald":       { deals:"https://www.mcdonalds.com/us/en-us/deals.html",                         clearance:"https://www.mcdonalds.com/us/en-us/deals.html",                                 hasOnline: true },
+  "starbucks":      { deals:"https://www.starbucks.com/rewards",                                     clearance:"https://www.starbucks.com/rewards",                                             hasOnline: true },
+  "subway":         { deals:"https://www.subway.com/en-US/MenuNutrition/Menu/Deals",                 clearance:"https://www.subway.com/en-US/MenuNutrition/Menu/Deals",                         hasOnline: true },
+  "chipotle":       { deals:"https://www.chipotle.com/rewards",                                      clearance:"https://www.chipotle.com/rewards",                                              hasOnline: true },
+  "burger king":    { deals:"https://www.bk.com/offers",                                             clearance:"https://www.bk.com/offers",                                                     hasOnline: true },
+  "taco bell":      { deals:"https://www.tacobell.com/rewards",                                      clearance:"https://www.tacobell.com/rewards",                                              hasOnline: true },
+  "wendy":          { deals:"https://www.wendys.com/deals",                                          clearance:"https://www.wendys.com/deals",                                                  hasOnline: true },
+  "dunkin":         { deals:"https://www.dunkindonuts.com/en/promotions",                             clearance:"https://www.dunkindonuts.com/en/promotions",                                    hasOnline: true },
+  "petco":          { deals:"https://www.petco.com/shop/en/petcostore/category/deals",               clearance:"https://www.petco.com/shop/en/petcostore/category/deals",                       hasOnline: true },
+  "petsmart":       { deals:"https://www.petsmart.com/featured-sale-items/",                         clearance:"https://www.petsmart.com/featured-sale-items/",                                 hasOnline: true },
+  "dick's":         { deals:"https://www.dickssportinggoods.com/f/deals",                            clearance:"https://www.dickssportinggoods.com/f/deals",                                    hasOnline: true },
+  "rei":            { deals:"https://www.rei.com/rei-garage",                                        clearance:"https://www.rei.com/rei-garage",                                                hasOnline: true },
+  "academy":        { deals:"https://www.academy.com/c/deals",                                       clearance:"https://www.academy.com/c/deals",                                               hasOnline: true },
+  "meijer":         { deals:"https://www.meijer.com/shopping/weekly-deals.html",                     clearance:"https://www.meijer.com/shopping/weekly-deals.html",                             hasOnline: true },
+  // IN-STORE ONLY — show note instead of broken link
+  "ross":           { deals:"", clearance:"", hasOnline: false },
+  "tj maxx":        { deals:"", clearance:"", hasOnline: false },
+  "marshalls":      { deals:"", clearance:"", hasOnline: false },
+  "ollie":          { deals:"https://www.ollies.us/deals/", clearance:"https://www.ollies.us/deals/", hasOnline: true },
+  "burlington":     { deals:"https://www.burlington.com/category/sale", clearance:"https://www.burlington.com/category/sale", hasOnline: true },
 };
 
-// ── TODAY'S DEALS ──────────────────────────────────────
+// ── TODAY'S DEALS — only stores with online deals ──────
 const DAILY_DEALS = {
   0: { label:"Sunday ☀️", deals:[
     { icon:"💊", name:"CVS",           tip:"Last day of weekly deals!",     color:"#CC0000",
@@ -289,7 +296,7 @@ const DAILY_DEALS = {
       dealsUrl:"https://www.walmart.com/store-finder",
       clearUrl:"https://www.walmart.com/browse/clearance",
       mapUrl:"https://www.google.com/maps/search/Walmart+near+me" },
-    { icon:"🎯", name:"Target",        tip:"New markdowns — shop 8–10 AM!", color:"#CC0000",
+    { icon:"🎯", name:"Target",        tip:"New markdowns today!",          color:"#CC0000",
       dealsUrl:"https://www.target.com/c/target-circle-deals/-/N-4tfyn",
       clearUrl:"https://www.target.com/c/clearance/-/N-5q0e1",
       mapUrl:"https://www.google.com/maps/search/Target+near+me" },
@@ -297,24 +304,20 @@ const DAILY_DEALS = {
       dealsUrl:"https://www.bestbuy.com/site/misc/deal-of-the-day/pcmcat248000050016.c",
       clearUrl:"https://www.bestbuy.com/site/electronics/open-box/pcmcat211400050026.c",
       mapUrl:"https://www.google.com/maps/search/Best+Buy+near+me" },
-    { icon:"🛍️", name:"TJ Maxx",      tip:"New shipments arrived!",        color:"#E31837",
-      dealsUrl:"https://www.tjmaxx.tjx.com/store/index.jsp",
-      clearUrl:"https://www.tjmaxx.tjx.com/store/index.jsp",
-      mapUrl:"https://www.google.com/maps/search/TJ+Maxx+near+me" },
-    { icon:"🛍️", name:"Marshalls",    tip:"New shipments today!",          color:"#003087",
-      dealsUrl:"https://www.marshalls.com/us/store/index.jsp",
-      clearUrl:"https://www.marshalls.com/us/store/index.jsp",
-      mapUrl:"https://www.google.com/maps/search/Marshalls+near+me" },
     { icon:"🐾", name:"Petco",         tip:"New clearance pet items!",      color:"#003087",
       dealsUrl:"https://www.petco.com/shop/en/petcostore/category/deals",
       clearUrl:"https://www.petco.com/shop/en/petcostore/category/deals",
       mapUrl:"https://www.google.com/maps/search/Petco+near+me" },
+    { icon:"💵", name:"Five Below",    tip:"New arrivals & markdowns!",     color:"#A020F0",
+      dealsUrl:"https://www.fivebelow.com/content/fivebelow/deals.html",
+      clearUrl:"https://www.fivebelow.com/content/fivebelow/deals.html",
+      mapUrl:"https://www.google.com/maps/search/Five+Below+near+me" },
+    { icon:"🏬", name:"Sam's Club",    tip:"New instant savings today!",    color:"#007DC6",
+      dealsUrl:"https://www.samsclub.com/instant-savings",
+      clearUrl:"https://www.samsclub.com/savings",
+      mapUrl:"https://www.google.com/maps/search/Sams+Club+near+me" },
   ]},
   2: { label:"Tuesday 🛍️", deals:[
-    { icon:"🛍️", name:"Ross",         tip:"Best day — new inventory!",     color:"#003087",
-      dealsUrl:"https://www.rossstores.com/",
-      clearUrl:"https://www.rossstores.com/",
-      mapUrl:"https://www.google.com/maps/search/Ross+store+near+me" },
     { icon:"🛒", name:"Walmart",       tip:"Monday clearance still active!",color:"#0071CE",
       dealsUrl:"https://www.walmart.com/browse/clearance",
       clearUrl:"https://www.walmart.com/browse/clearance",
@@ -323,7 +326,7 @@ const DAILY_DEALS = {
       dealsUrl:"https://www.target.com/c/clearance/-/N-5q0e1",
       clearUrl:"https://www.target.com/c/clearance/-/N-5q0e1",
       mapUrl:"https://www.google.com/maps/search/Target+near+me" },
-    { icon:"💵", name:"Dollar General",tip:"Check DG app for coupons!",    color:"#FFD700",
+    { icon:"💵", name:"Dollar General",tip:"Check DG weekly ad!",          color:"#FFD700",
       dealsUrl:"https://www.dollargeneral.com/weekly-ad",
       clearUrl:"https://www.dollargeneral.com/weekly-ad",
       mapUrl:"https://www.google.com/maps/search/Dollar+General+near+me" },
@@ -335,6 +338,10 @@ const DAILY_DEALS = {
       dealsUrl:"https://www.costco.com/hot-buys.html",
       clearUrl:"https://www.costco.com/hot-buys.html",
       mapUrl:"https://www.google.com/maps/search/Costco+near+me" },
+    { icon:"🏷️", name:"Big Lots",     tip:"Check furniture clearance!",    color:"#E31837",
+      dealsUrl:"https://www.biglots.com/deals",
+      clearUrl:"https://www.biglots.com/deals",
+      mapUrl:"https://www.google.com/maps/search/Big+Lots+near+me" },
   ]},
   3: { label:"Wednesday 🥬", deals:[
     { icon:"🛒", name:"Aldi",          tip:"🔥 ALDI Finds reset today!",    color:"#00438A",
@@ -367,26 +374,26 @@ const DAILY_DEALS = {
       dealsUrl:"https://www.target.com/c/clearance/-/N-5q0e1",
       clearUrl:"https://www.target.com/c/clearance/-/N-5q0e1",
       mapUrl:"https://www.google.com/maps/search/Target+near+me" },
-    { icon:"🔨", name:"Home Depot",    tip:"Orange clearance stickers!",    color:"#F96302",
+    { icon:"🔨", name:"Home Depot",    tip:"Direct to clearance page!",     color:"#F96302",
       dealsUrl:"https://www.homedepot.com/b/Clearance/N-5yc1vZc9gu",
       clearUrl:"https://www.homedepot.com/b/Clearance/N-5yc1vZc9gu",
       mapUrl:"https://www.google.com/maps/search/Home+Depot+near+me" },
-    { icon:"🔧", name:"Lowe's",        tip:"Red clearance tags in store!",  color:"#004990",
+    { icon:"🔧", name:"Lowe's",        tip:"Direct to deals page!",         color:"#004990",
       dealsUrl:"https://www.lowes.com/l/deals.html",
       clearUrl:"https://www.lowes.com/l/deals.html",
       mapUrl:"https://www.google.com/maps/search/Lowes+near+me" },
-    { icon:"🏷️", name:"Ollie's",      tip:"Closeout deals — visit often!", color:"#E31837",
-      dealsUrl:"https://www.ollies.us/deals/",
-      clearUrl:"https://www.ollies.us/deals/",
-      mapUrl:"https://www.google.com/maps/search/Ollies+Bargain+Outlet+near+me" },
     { icon:"🏷️", name:"Big Lots",     tip:"Furniture & home clearance!",   color:"#E31837",
       dealsUrl:"https://www.biglots.com/deals",
       clearUrl:"https://www.biglots.com/deals",
       mapUrl:"https://www.google.com/maps/search/Big+Lots+near+me" },
-    { icon:"🥬", name:"Kroger",        tip:"Manager's specials on meat!",   color:"#00539F",
+    { icon:"🥬", name:"Kroger",        tip:"Manager specials on meat!",     color:"#00539F",
       dealsUrl:"https://www.kroger.com/savings/cl/weeklyad",
       clearUrl:"https://www.kroger.com/savings/cl/weeklyad",
       mapUrl:"https://www.google.com/maps/search/Kroger+near+me" },
+    { icon:"🛒", name:"Walmart",       tip:"Clearance active all week!",    color:"#0071CE",
+      dealsUrl:"https://www.walmart.com/browse/clearance",
+      clearUrl:"https://www.walmart.com/browse/clearance",
+      mapUrl:"https://www.google.com/maps/search/Walmart+near+me" },
   ]},
   5: { label:"Friday 🎉", deals:[
     { icon:"🛒", name:"Walmart",       tip:"End-of-week price cuts!",       color:"#0071CE",
@@ -397,7 +404,7 @@ const DAILY_DEALS = {
       dealsUrl:"https://www.bestbuy.com/site/electronics/open-box/pcmcat211400050026.c",
       clearUrl:"https://www.bestbuy.com/site/electronics/open-box/pcmcat211400050026.c",
       mapUrl:"https://www.google.com/maps/search/Best+Buy+near+me" },
-    { icon:"🔨", name:"Home Depot",    tip:"Check Damaged Box cart!",       color:"#F96302",
+    { icon:"🔨", name:"Home Depot",    tip:"Direct clearance page!",        color:"#F96302",
       dealsUrl:"https://www.homedepot.com/b/Clearance/N-5yc1vZc9gu",
       clearUrl:"https://www.homedepot.com/b/Clearance/N-5yc1vZc9gu",
       mapUrl:"https://www.google.com/maps/search/Home+Depot+near+me" },
@@ -405,11 +412,11 @@ const DAILY_DEALS = {
       dealsUrl:"https://www.wholefoodsmarket.com/sales-flyer",
       clearUrl:"https://www.wholefoodsmarket.com/sales-flyer",
       mapUrl:"https://www.google.com/maps/search/Whole+Foods+near+me" },
-    { icon:"🌻", name:"Trader Joe's",  tip:"Check Fearless Flyer deals!",   color:"#BB0000",
+    { icon:"🌻", name:"Trader Joe's",  tip:"Fearless Flyer deals!",         color:"#BB0000",
       dealsUrl:"https://www.traderjoes.com/home/fearless-flyer",
       clearUrl:"https://www.traderjoes.com/home/fearless-flyer",
       mapUrl:"https://www.google.com/maps/search/Trader+Joes+near+me" },
-    { icon:"💵", name:"Dollar General",tip:"Check DG app for savings!",    color:"#FFD700",
+    { icon:"💵", name:"Dollar General",tip:"Check DG weekly ad!",          color:"#FFD700",
       dealsUrl:"https://www.dollargeneral.com/weekly-ad",
       clearUrl:"https://www.dollargeneral.com/weekly-ad",
       mapUrl:"https://www.google.com/maps/search/Dollar+General+near+me" },
@@ -458,21 +465,21 @@ function renderTodaysDeals() {
         </div>
         <div style="display:flex;gap:5px;flex-wrap:wrap;">
           <a href="${d.dealsUrl}" target="_blank" rel="noopener noreferrer"
-            style="flex:1;min-width:70px;display:block;text-align:center;text-decoration:none;
+            style="flex:1;min-width:60px;display:block;text-align:center;text-decoration:none;
             background:${d.color}cc;border:1px solid ${d.color}55;
-            border-radius:7px;padding:6px 6px;font-size:11px;font-weight:700;color:#fff;">
+            border-radius:7px;padding:6px 4px;font-size:11px;font-weight:700;color:#fff;">
             🏷️ Deals
           </a>
           <a href="${d.clearUrl}" target="_blank" rel="noopener noreferrer"
-            style="flex:1;min-width:70px;display:block;text-align:center;text-decoration:none;
+            style="flex:1;min-width:60px;display:block;text-align:center;text-decoration:none;
             background:rgba(249,115,22,0.15);border:1px solid rgba(249,115,22,0.3);
-            border-radius:7px;padding:6px 6px;font-size:11px;font-weight:700;color:#fb923c;">
-            🔴 Clearance
+            border-radius:7px;padding:6px 4px;font-size:11px;font-weight:700;color:#fb923c;">
+            🔴 Sale
           </a>
           <a href="${d.mapUrl}" target="_blank" rel="noopener noreferrer"
-            style="flex:1;min-width:70px;display:block;text-align:center;text-decoration:none;
+            style="flex:1;min-width:60px;display:block;text-align:center;text-decoration:none;
             background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);
-            border-radius:7px;padding:6px 6px;font-size:11px;font-weight:700;color:#94a3b8;">
+            border-radius:7px;padding:6px 4px;font-size:11px;font-weight:700;color:#94a3b8;">
             📍 Near Me
           </a>
         </div>
@@ -480,7 +487,6 @@ function renderTodaysDeals() {
   `;
 }
 
-// ── STORE ITEM LINKS ───────────────────────────────────
 function getStoreItemLink(storeKey, item) {
   const q = encodeURIComponent(item);
   const links = {
@@ -507,25 +513,19 @@ function getStoreItemLink(storeKey, item) {
     "old navy":       `https://www.oldnavy.com/search?searchTerm=${q}`,
     "gap":            `https://www.gap.com/search?searchText=${q}`,
     "h&m":            `https://www2.hm.com/en_us/search-results.html?q=${q}`,
-    "tj maxx":        `https://www.tjmaxx.tjx.com/store/search/search.jsp?text=${q}`,
-    "marshalls":      `https://www.marshalls.com/us/store/search/search.jsp?text=${q}`,
-    "burlington":     `https://www.burlington.com/search?q=${q}`,
     "petco":          `https://www.petco.com/shop/en/petcostore/search?q=${q}`,
     "petsmart":       `https://www.petsmart.com/search?q=${q}`,
     "dick's":         `https://www.dickssportinggoods.com/s/${q}`,
     "rei":            `https://www.rei.com/search?q=${q}`,
     "academy":        `https://www.academy.com/search?q=${q}`,
     "meijer":         `https://www.meijer.com/shopping/search.html?search=${q}`,
-    "aldi":           `https://www.aldi.us/`,
-    "trader joe":     `https://www.traderjoes.com/`,
-    "ross":           `https://www.rossstores.com/`,
-    "ollie":          `https://www.ollies.us/`,
-    "lidl":           `https://www.lidl.com/`,
+    "aldi":           `https://www.aldi.us/en/weekly-specials/`,
+    "trader joe":     `https://www.traderjoes.com/home/fearless-flyer`,
+    "lidl":           `https://www.lidl.com/en/weekly-specials.htm`,
     "sprouts":        `https://www.sprouts.com/deals/`,
-    "wegmans":        `https://www.wegmans.com/`,
+    "wegmans":        `https://www.wegmans.com/sales-flyer/`,
     "food lion":      `https://www.foodlion.com/weeklyspecials/`,
     "giant":          `https://giantfood.com/weekly-flyer/`,
-    "save a lot":     `https://www.savealot.com/`,
   };
   return links[storeKey] || `https://www.google.com/search?q=${encodeURIComponent(item+' '+storeKey)}`;
 }
@@ -557,7 +557,6 @@ const ITEM_STORE_MAP = {
   "birthday cake":["Grocery","Grocery & General"],
   "cake":["Grocery","Grocery & General"],
   "cupcakes":["Grocery","Grocery & General"],
-  "ice cream cake":["Grocery","Grocery & General"],
   "ice cream":["Grocery","Grocery & General"],
   "cookies":["Grocery","Grocery & General","Discount & Closeout"],
   "candy":["Grocery","Grocery & General","Discount & Closeout","Pharmacy"],
@@ -571,215 +570,122 @@ const ITEM_STORE_MAP = {
   "coffee":["Café","Grocery","Grocery & General"],
   "tea":["Grocery","Grocery & General","Pharmacy"],
   "mushrooms":["Grocery","Grocery & General"],
-  "produce":["Grocery","Grocery & General"],
   "vegetables":["Grocery","Grocery & General"],
   "fruits":["Grocery","Grocery & General"],
-  "apples":["Grocery","Grocery & General"],
-  "bananas":["Grocery","Grocery & General"],
-  "tomatoes":["Grocery","Grocery & General"],
-  "potatoes":["Grocery","Grocery & General"],
-  "onions":["Grocery","Grocery & General"],
-  "garlic":["Grocery","Grocery & General"],
-  "lettuce":["Grocery","Grocery & General"],
-  "salad":["Grocery","Grocery & General"],
   "cheese":["Grocery","Grocery & General"],
   "milk":["Grocery","Grocery & General"],
-  "butter":["Grocery","Grocery & General"],
   "eggs":["Grocery","Grocery & General"],
-  "yogurt":["Grocery","Grocery & General"],
   "meat":["Grocery","Grocery & General"],
   "chicken":["Grocery","Grocery & General"],
-  "beef":["Grocery","Grocery & General"],
-  "pork":["Grocery","Grocery & General"],
-  "fish":["Grocery","Grocery & General"],
-  "shrimp":["Grocery","Grocery & General"],
-  "seafood":["Grocery","Grocery & General"],
   "bread":["Grocery","Grocery & General"],
   "pasta":["Grocery","Grocery & General"],
   "rice":["Grocery","Grocery & General"],
   "cereal":["Grocery","Grocery & General"],
-  "flour":["Grocery","Grocery & General"],
-  "sugar":["Grocery","Grocery & General"],
-  "oil":["Grocery","Grocery & General"],
-  "sauce":["Grocery","Grocery & General"],
-  "spices":["Grocery","Grocery & General"],
-  "soup":["Grocery","Grocery & General"],
-  "beans":["Grocery","Grocery & General"],
-  "frozen food":["Grocery","Grocery & General"],
   "food":["Grocery","Grocery & General"],
   "groceries":["Grocery","Grocery & General"],
-  "organic":["Grocery","Grocery & General"],
-  "pizza":["Grocery","Grocery & General"],
-  "nuts":["Grocery","Grocery & General","Pharmacy"],
-  "beer":["Grocery","Grocery & General"],
-  "wine":["Grocery","Grocery & General"],
   "medicine":["Pharmacy","Grocery & General"],
   "vitamins":["Pharmacy","Grocery & General"],
-  "supplements":["Pharmacy","Grocery & General"],
-  "first aid":["Pharmacy","Grocery & General"],
-  "bandages":["Pharmacy","Grocery & General"],
   "shampoo":["Pharmacy","Grocery & General"],
   "soap":["Pharmacy","Grocery & General"],
   "toothpaste":["Pharmacy","Grocery & General"],
   "skincare":["Pharmacy","Grocery & General"],
   "makeup":["Pharmacy","Grocery & General"],
-  "sunscreen":["Pharmacy","Grocery & General","Sports & Outdoors"],
-  "diapers":["Pharmacy","Grocery & General","Grocery"],
   "baby":["Pharmacy","Grocery & General"],
   "tv":["Electronics","Grocery & General"],
-  "television":["Electronics","Grocery & General"],
   "laptop":["Electronics","Grocery & General"],
   "computer":["Electronics","Grocery & General"],
   "phone":["Electronics","Pharmacy"],
   "headphones":["Electronics","Discount & Closeout"],
-  "earbuds":["Electronics","Discount & Closeout"],
   "tablet":["Electronics","Grocery & General"],
-  "camera":["Electronics"],
-  "speaker":["Electronics","Discount & Closeout"],
-  "charger":["Electronics","Pharmacy","Discount & Closeout"],
   "gaming":["Electronics"],
-  "playstation":["Electronics"],
-  "xbox":["Electronics"],
-  "printer":["Electronics"],
-  "swim suit":["Fashion","Sports & Outdoors","Grocery & General"],
-  "swimsuit":["Fashion","Sports & Outdoors","Grocery & General"],
-  "bikini":["Fashion","Sports & Outdoors"],
   "shoes":["Fashion","Sports & Outdoors","Discount & Closeout"],
-  "sneakers":["Fashion","Sports & Outdoors"],
-  "boots":["Fashion","Discount & Closeout"],
   "jacket":["Fashion","Discount & Closeout"],
-  "coat":["Fashion","Discount & Closeout"],
   "dress":["Fashion","Discount & Closeout"],
   "jeans":["Fashion","Discount & Closeout"],
-  "shirt":["Fashion","Grocery & General","Discount & Closeout"],
-  "pants":["Fashion","Discount & Closeout"],
   "clothes":["Fashion","Grocery & General","Discount & Closeout"],
   "clothing":["Fashion","Grocery & General","Discount & Closeout"],
-  "socks":["Fashion","Grocery & General","Discount & Closeout"],
-  "underwear":["Fashion","Grocery & General","Discount & Closeout"],
-  "backpack":["Sports & Outdoors","Fashion","Discount & Closeout"],
+  "swim suit":["Fashion","Sports & Outdoors"],
   "furniture":["Home & Furniture","Discount & Closeout"],
   "sofa":["Home & Furniture","Discount & Closeout"],
   "bed":["Home & Furniture","Discount & Closeout"],
-  "mattress":["Home & Furniture"],
-  "desk":["Home & Furniture","Electronics"],
-  "chair":["Home & Furniture","Discount & Closeout"],
-  "lamp":["Home & Furniture","Discount & Closeout"],
-  "curtains":["Home & Furniture","Discount & Closeout"],
-  "rug":["Home & Furniture","Discount & Closeout"],
-  "cookware":["Home & Furniture","Grocery & General"],
-  "dishes":["Home & Furniture","Discount & Closeout"],
-  "bedding":["Home & Furniture","Discount & Closeout"],
-  "towels":["Home & Furniture","Discount & Closeout"],
-  "storage":["Home & Hardware","Home & Furniture","Discount & Closeout"],
   "tools":["Home & Hardware"],
   "drill":["Home & Hardware"],
   "paint":["Home & Hardware"],
-  "lumber":["Home & Hardware"],
   "garden":["Home & Hardware","Grocery & General"],
   "plants":["Home & Hardware","Grocery & General"],
-  "lawn":["Home & Hardware"],
-  "plumbing":["Home & Hardware"],
   "sports":["Sports & Outdoors"],
   "gym":["Sports & Outdoors"],
-  "yoga":["Sports & Outdoors","Fashion"],
   "camping":["Sports & Outdoors"],
-  "hiking":["Sports & Outdoors"],
-  "fishing":["Sports & Outdoors"],
-  "bicycle":["Sports & Outdoors"],
-  "basketball":["Sports & Outdoors"],
-  "football":["Sports & Outdoors"],
-  "soccer":["Sports & Outdoors"],
-  "workout":["Sports & Outdoors"],
-  "weights":["Sports & Outdoors"],
-  "golf":["Sports & Outdoors"],
-  "tennis":["Sports & Outdoors"],
   "pet food":["Pet Supplies","Grocery & General","Grocery"],
   "dog food":["Pet Supplies","Grocery & General","Grocery"],
   "cat food":["Pet Supplies","Grocery & General","Grocery"],
   "pet":["Pet Supplies"],
-  "dog":["Pet Supplies","Grocery & General"],
-  "cat":["Pet Supplies","Grocery & General"],
-  "pet toys":["Pet Supplies"],
-  "aquarium":["Pet Supplies"],
   "toys":["Grocery & General","Discount & Closeout"],
   "games":["Electronics","Discount & Closeout","Grocery & General"],
-  "board game":["Discount & Closeout","Grocery & General"],
-  "lego":["Grocery & General","Discount & Closeout"],
   "school supplies":["Grocery & General","Discount & Closeout"],
-  "notebook":["Grocery & General","Discount & Closeout"],
-  "pens":["Grocery & General","Discount & Closeout","Pharmacy"],
-  "office":["Grocery & General","Electronics","Discount & Closeout"],
-  "motor oil":["Grocery & General","Home & Hardware"],
-  "tires":["Home & Hardware"],
+  "backpack":["Sports & Outdoors","Fashion","Discount & Closeout"],
 };
 
 const DEALS_DB = {
-  "walmart":        { category:"Grocery & General", deals:"https://www.walmart.com/store-finder", color:"#0071CE", icon:"🛒" },
-  "costco":         { category:"Grocery & General", deals:"https://www.costco.com/hot-buys.html", color:"#003087", icon:"🏬" },
-  "sam's club":     { category:"Grocery & General", deals:"https://www.samsclub.com/instant-savings", color:"#007DC6", icon:"🏬" },
-  "target":         { category:"Grocery & General", deals:"https://www.target.com/c/target-circle-deals/-/N-4tfyn", color:"#CC0000", icon:"🎯" },
-  "meijer":         { category:"Grocery & General", deals:"https://www.meijer.com/shopping/weekly-deals.html", color:"#D62828", icon:"🛒" },
-  "kroger":         { category:"Grocery", deals:"https://www.kroger.com/savings/cl/weeklyad", color:"#00539F", icon:"🥬" },
-  "safeway":        { category:"Grocery", deals:"https://www.safeway.com/weeklyad", color:"#EE2E24", icon:"🥬" },
-  "whole foods":    { category:"Grocery", deals:"https://www.wholefoodsmarket.com/sales-flyer", color:"#00674B", icon:"🥦" },
-  "trader joe":     { category:"Grocery", deals:"https://www.traderjoes.com/home/fearless-flyer", color:"#BB0000", icon:"🌻" },
-  "aldi":           { category:"Grocery", deals:"https://www.aldi.us/en/weekly-specials/", color:"#00438A", icon:"🛒" },
-  "publix":         { category:"Grocery", deals:"https://www.publix.com/savings/weekly-ad", color:"#509E2F", icon:"🥬" },
-  "food lion":      { category:"Grocery", deals:"https://www.foodlion.com/weeklyspecials/", color:"#006B3C", icon:"🥬" },
-  "giant":          { category:"Grocery", deals:"https://giantfood.com/weekly-flyer/", color:"#CC0000", icon:"🥬" },
-  "wegmans":        { category:"Grocery", deals:"https://www.wegmans.com/sales-flyer/", color:"#007DC6", icon:"🥬" },
-  "sprouts":        { category:"Grocery", deals:"https://www.sprouts.com/deals/", color:"#5A8F3C", icon:"🥦" },
-  "lidl":           { category:"Grocery", deals:"https://www.lidl.com/en/weekly-specials.htm", color:"#003087", icon:"🛒" },
-  "save a lot":     { category:"Grocery", deals:"https://www.savealot.com/", color:"#E31837", icon:"🛒" },
-  "ollie":          { category:"Discount & Closeout", deals:"https://www.ollies.us/deals/", color:"#E31837", icon:"🏷️" },
-  "big lots":       { category:"Discount & Closeout", deals:"https://www.biglots.com/deals", color:"#E31837", icon:"🏷️" },
-  "dollar tree":    { category:"Discount & Closeout", deals:"https://www.dollartree.com/", color:"#2E7D32", icon:"💵" },
-  "dollar general": { category:"Discount & Closeout", deals:"https://www.dollargeneral.com/weekly-ad", color:"#FFD700", icon:"💵" },
-  "five below":     { category:"Discount & Closeout", deals:"https://www.fivebelow.com/content/fivebelow/deals.html", color:"#A020F0", icon:"🎯" },
-  "family dollar":  { category:"Discount & Closeout", deals:"https://www.familydollar.com/weekly-ad/", color:"#CC0000", icon:"💵" },
-  "best buy":       { category:"Electronics", deals:"https://www.bestbuy.com/site/misc/deal-of-the-day/pcmcat248000050016.c", color:"#003087", icon:"💻" },
-  "micro center":   { category:"Electronics", deals:"https://www.microcenter.com/site/content/weekly_ad.aspx", color:"#E31837", icon:"🖥️" },
-  "cvs":            { category:"Pharmacy", deals:"https://www.cvs.com/weekly-ad/circulars", color:"#CC0000", icon:"💊" },
-  "walgreens":      { category:"Pharmacy", deals:"https://www.walgreens.com/offers/offers.jsp", color:"#E31837", icon:"💊" },
-  "rite aid":       { category:"Pharmacy", deals:"https://www.riteaid.com/weekly-ad.html", color:"#0073CF", icon:"💊" },
-  "old navy":       { category:"Fashion", deals:"https://www.oldnavy.com/c/clearance", color:"#003087", icon:"👗" },
-  "h&m":            { category:"Fashion", deals:"https://www2.hm.com/en_us/sale.html", color:"#E50010", icon:"👗" },
-  "ross":           { category:"Fashion", deals:"https://www.rossstores.com/", color:"#003087", icon:"🛍️" },
-  "tj maxx":        { category:"Fashion", deals:"https://www.tjmaxx.tjx.com/store/index.jsp", color:"#E31837", icon:"🛍️" },
-  "marshalls":      { category:"Fashion", deals:"https://www.marshalls.com/us/store/index.jsp", color:"#003087", icon:"🛍️" },
-  "burlington":     { category:"Fashion", deals:"https://www.burlington.com/category/clearance", color:"#CC0000", icon:"🧥" },
-  "gap":            { category:"Fashion", deals:"https://www.gap.com/browse/category.do?cid=1118660", color:"#1C1C1C", icon:"👕" },
-  "home depot":     { category:"Home & Hardware", deals:"https://www.homedepot.com/b/Clearance/N-5yc1vZc9gu", color:"#F96302", icon:"🔨" },
-  "lowe":           { category:"Home & Hardware", deals:"https://www.lowes.com/l/deals.html", color:"#004990", icon:"🔧" },
-  "ikea":           { category:"Home & Furniture", deals:"https://www.ikea.com/us/en/offers/", color:"#003087", icon:"🪑" },
-  "mcdonald":       { category:"Fast Food", deals:"https://www.mcdonalds.com/us/en-us/deals.html", color:"#FFC72C", icon:"🍟" },
-  "starbucks":      { category:"Café", deals:"https://www.starbucks.com/rewards", color:"#00704A", icon:"☕" },
-  "subway":         { category:"Fast Food", deals:"https://www.subway.com/en-US/MenuNutrition/Menu/Deals", color:"#009843", icon:"🥖" },
-  "chipotle":       { category:"Fast Food", deals:"https://www.chipotle.com/rewards", color:"#A81612", icon:"🌯" },
-  "chick-fil-a":    { category:"Fast Food", deals:"https://www.chick-fil-a.com/offers", color:"#E4002B", icon:"🍗" },
-  "taco bell":      { category:"Fast Food", deals:"https://www.tacobell.com/rewards", color:"#702082", icon:"🌮" },
-  "burger king":    { category:"Fast Food", deals:"https://www.bk.com/offers", color:"#EC7000", icon:"🍔" },
-  "wendy":          { category:"Fast Food", deals:"https://www.wendys.com/deals", color:"#E2231A", icon:"🍔" },
-  "dunkin":         { category:"Café", deals:"https://www.dunkindonuts.com/en/promotions", color:"#FF6319", icon:"🍩" },
-  "panera":         { category:"Café", deals:"https://www.panerabread.com/en-us/articles/deals.html", color:"#6B3A2A", icon:"🥐" },
-  "petco":          { category:"Pet Supplies", deals:"https://www.petco.com/shop/en/petcostore/category/deals", color:"#003087", icon:"🐾" },
-  "petsmart":       { category:"Pet Supplies", deals:"https://www.petsmart.com/featured-sale-items/", color:"#E31837", icon:"🐾" },
-  "dick's":         { category:"Sports & Outdoors", deals:"https://www.dickssportinggoods.com/f/clearance", color:"#003087", icon:"⚽" },
-  "rei":            { category:"Sports & Outdoors", deals:"https://www.rei.com/rei-garage", color:"#4A7729", icon:"🏕️" },
-  "academy":        { category:"Sports & Outdoors", deals:"https://www.academy.com/c/clearance", color:"#003087", icon:"🏋️" },
+  "walmart":        { category:"Grocery & General", color:"#0071CE", icon:"🛒" },
+  "costco":         { category:"Grocery & General", color:"#003087", icon:"🏬" },
+  "sam's club":     { category:"Grocery & General", color:"#007DC6", icon:"🏬" },
+  "target":         { category:"Grocery & General", color:"#CC0000", icon:"🎯" },
+  "meijer":         { category:"Grocery & General", color:"#D62828", icon:"🛒" },
+  "kroger":         { category:"Grocery",           color:"#00539F", icon:"🥬" },
+  "safeway":        { category:"Grocery",           color:"#EE2E24", icon:"🥬" },
+  "whole foods":    { category:"Grocery",           color:"#00674B", icon:"🥦" },
+  "trader joe":     { category:"Grocery",           color:"#BB0000", icon:"🌻" },
+  "aldi":           { category:"Grocery",           color:"#00438A", icon:"🛒" },
+  "publix":         { category:"Grocery",           color:"#509E2F", icon:"🥬" },
+  "food lion":      { category:"Grocery",           color:"#006B3C", icon:"🥬" },
+  "giant":          { category:"Grocery",           color:"#CC0000", icon:"🥬" },
+  "wegmans":        { category:"Grocery",           color:"#007DC6", icon:"🥬" },
+  "sprouts":        { category:"Grocery",           color:"#5A8F3C", icon:"🥦" },
+  "lidl":           { category:"Grocery",           color:"#003087", icon:"🛒" },
+  "big lots":       { category:"Discount & Closeout", color:"#E31837", icon:"🏷️" },
+  "dollar tree":    { category:"Discount & Closeout", color:"#2E7D32", icon:"💵" },
+  "dollar general": { category:"Discount & Closeout", color:"#FFD700", icon:"💵" },
+  "five below":     { category:"Discount & Closeout", color:"#A020F0", icon:"🎯" },
+  "family dollar":  { category:"Discount & Closeout", color:"#CC0000", icon:"💵" },
+  "ollie":          { category:"Discount & Closeout", color:"#E31837", icon:"🏷️" },
+  "burlington":     { category:"Discount & Closeout", color:"#CC0000", icon:"🧥" },
+  "best buy":       { category:"Electronics",       color:"#003087", icon:"💻" },
+  "cvs":            { category:"Pharmacy",          color:"#CC0000", icon:"💊" },
+  "walgreens":      { category:"Pharmacy",          color:"#E31837", icon:"💊" },
+  "rite aid":       { category:"Pharmacy",          color:"#0073CF", icon:"💊" },
+  "old navy":       { category:"Fashion",           color:"#003087", icon:"👗" },
+  "h&m":            { category:"Fashion",           color:"#E50010", icon:"👗" },
+  "gap":            { category:"Fashion",           color:"#1C1C1C", icon:"👕" },
+  "home depot":     { category:"Home & Hardware",   color:"#F96302", icon:"🔨" },
+  "lowe":           { category:"Home & Hardware",   color:"#004990", icon:"🔧" },
+  "ikea":           { category:"Home & Furniture",  color:"#003087", icon:"🪑" },
+  "mcdonald":       { category:"Fast Food",         color:"#FFC72C", icon:"🍟" },
+  "starbucks":      { category:"Café",              color:"#00704A", icon:"☕" },
+  "subway":         { category:"Fast Food",         color:"#009843", icon:"🥖" },
+  "chipotle":       { category:"Fast Food",         color:"#A81612", icon:"🌯" },
+  "chick-fil-a":    { category:"Fast Food",         color:"#E4002B", icon:"🍗" },
+  "taco bell":      { category:"Fast Food",         color:"#702082", icon:"🌮" },
+  "burger king":    { category:"Fast Food",         color:"#EC7000", icon:"🍔" },
+  "wendy":          { category:"Fast Food",         color:"#E2231A", icon:"🍔" },
+  "dunkin":         { category:"Café",              color:"#FF6319", icon:"🍩" },
+  "petco":          { category:"Pet Supplies",      color:"#003087", icon:"🐾" },
+  "petsmart":       { category:"Pet Supplies",      color:"#E31837", icon:"🐾" },
+  "dick's":         { category:"Sports & Outdoors", color:"#003087", icon:"⚽" },
+  "rei":            { category:"Sports & Outdoors", color:"#4A7729", icon:"🏕️" },
+  "academy":        { category:"Sports & Outdoors", color:"#003087", icon:"🏋️" },
 };
 
 const ALIASES = {
   "walmart":        ["walmart","wal-mart","wal mart","walmart supercenter","walmart neighborhood market"],
-  "aldi":           ["aldi","aldi foods","aldi market","aldi supermarket","aldi nord","aldi sud"],
-  "costco":         ["costco","costco wholesale","costco business center","costco gasoline"],
-  "sam's club":     ["sam's club","sams club","sam's"],
+  "aldi":           ["aldi","aldi foods","aldi market","aldi supermarket"],
+  "costco":         ["costco","costco wholesale","costco gasoline"],
+  "sam's club":     ["sam's club","sams club"],
   "target":         ["target","target store","target supercenter"],
   "kroger":         ["kroger","kroger marketplace"],
   "whole foods":    ["whole foods","whole foods market"],
   "trader joe":     ["trader joe","trader joe's","trader joes"],
-  "ollie":          ["ollie","ollie's","ollies","ollie's bargain outlet"],
+  "ollie":          ["ollie","ollie's","ollies"],
   "big lots":       ["big lots","biglots"],
   "dollar general": ["dollar general","dollargeneral"],
   "dollar tree":    ["dollar tree","dollartree"],
@@ -800,10 +706,9 @@ const ALIASES = {
   "wendy":          ["wendy's","wendys","wendy"],
   "dunkin":         ["dunkin","dunkin donuts","dunkin'"],
   "chick-fil-a":    ["chick-fil-a","chick fil a","chickfila"],
-  "panera":         ["panera","panera bread"],
   "petco":          ["petco"],
   "petsmart":       ["petsmart","pet smart"],
-  "dick's":         ["dick's","dicks sporting","dick's sporting goods"],
+  "dick's":         ["dick's","dicks sporting"],
   "publix":         ["publix"],
   "safeway":        ["safeway"],
   "wegmans":        ["wegmans"],
@@ -811,9 +716,6 @@ const ALIASES = {
   "giant":          ["giant","giant food","giant eagle"],
   "lidl":           ["lidl"],
   "sprouts":        ["sprouts","sprouts farmers market"],
-  "ross":           ["ross","ross dress for less"],
-  "tj maxx":        ["tj maxx","tjmaxx","t.j. maxx"],
-  "marshalls":      ["marshalls"],
   "old navy":       ["old navy"],
   "burlington":     ["burlington","burlington coat factory"],
   "gap":            ["gap"],
@@ -836,16 +738,9 @@ const MAJOR_CHAINS = [
   { name:"Walgreens",      key:"walgreens" },
   { name:"McDonald's",     key:"mcdonald" },
   { name:"Starbucks",      key:"starbucks" },
-  { name:"Subway",         key:"subway" },
-  { name:"Burger King",    key:"burger king" },
-  { name:"Taco Bell",      key:"taco bell" },
   { name:"Home Depot",     key:"home depot" },
   { name:"Lowe's",         key:"lowe" },
-  { name:"Ollie's",        key:"ollie" },
   { name:"Big Lots",       key:"big lots" },
-  { name:"Ross",           key:"ross" },
-  { name:"TJ Maxx",        key:"tj maxx" },
-  { name:"Marshalls",      key:"marshalls" },
   { name:"Five Below",     key:"five below" },
   { name:"PetSmart",       key:"petsmart" },
   { name:"Petco",          key:"petco" },
@@ -854,46 +749,32 @@ const MAJOR_CHAINS = [
 ];
 
 const CLEARANCE_DB = {
-  "walmart":        [{ day:"Monday",    text:"<b>New markdowns</b> on clothing & electronics. Shop early!" },{ day:"Friday",    text:"<b>End-of-week price cuts</b> on groceries & home goods." },{ day:"💡 Tip",   text:"Use Walmart app → filter by <b>Clearance</b>." }],
-  "costco":         [{ day:"Monday",    text:"<b>New markdowns</b> on electronics & appliances." },{ day:"Seasonal",  text:"<b>End of season</b> — huge discounts on clothing & garden." },{ day:"💡 Tip",   text:"Check <b>Costco.com/savings</b> for monthly coupon deals." }],
-  "target":         [{ day:"Monday",    text:"<b>New markdowns begin.</b> Arrive 8–10 AM for best picks." },{ day:"Thursday",  text:"<b>Extra clearance</b> in apparel & home sections." },{ day:"💡 Tip",   text:"<b>RED price tags</b> = clearance. Higher % = older markdown." }],
-  "kroger":         [{ day:"Wednesday", text:"<b>New weekly ad starts.</b> Best for meat & produce." },{ day:"Sunday",    text:"<b>Last day of ad</b> — double deals sometimes." },{ day:"💡 Tip",   text:"Look for <b>Manager's Special</b> stickers on meat." }],
-  "aldi":           [{ day:"Wednesday", text:"<b>ALDI Finds</b> section resets — limited buys added." },{ day:"Sunday",    text:"Check for <b>marked-down produce</b> & near-expiry items." },{ day:"💡 Tip",   text:"Shop <b>early Wednesday</b> — items sell out fast!" }],
-  "ollie":          [{ day:"Anytime",   text:"<b>Ollie's Army members</b> get 15% off clearance aisle." },{ day:"Seasonal",  text:"<b>After holidays</b> — massive clearance on brand name items." },{ day:"💡 Tip",   text:"Visit often — stock changes weekly!" }],
-  "big lots":       [{ day:"Saturday",  text:"<b>New clearance items</b> — furniture & home decor." },{ day:"💡 Tip",   text:"<b>BIG Rewards members</b> get extra coupons." }],
-  "dollar general": [{ day:"Saturday",  text:"<b>New digital coupons</b> reset — check app first." },{ day:"💡 Tip",   text:"<b>DG app</b> coupons save up to 50% on clearance." }],
-  "dollar tree":    [{ day:"Anytime",   text:"Everything <b>$1.25 or less</b> — check end caps." },{ day:"💡 Tip",   text:"Visit after holidays for <b>deeply discounted</b> items." }],
-  "five below":     [{ day:"Monday",    text:"<b>New arrivals & markdowns</b> added weekly." },{ day:"💡 Tip",   text:"Check <b>back of store</b> for clearance bins." }],
-  "family dollar":  [{ day:"Sunday",    text:"<b>New weekly ad</b> — health & home deals." },{ day:"💡 Tip",   text:"<b>Smart Coupons app</b> for extra savings." }],
-  "whole foods":    [{ day:"Wednesday", text:"<b>New weekly deals</b> start mid-week." },{ day:"💡 Tip",   text:"<b>Amazon Prime members</b> get 10% off yellow tags." }],
-  "trader joe":     [{ day:"Anytime",   text:"Check <b>Fearless Flyer</b> for seasonal deals." },{ day:"💡 Tip",   text:"Ask staff about <b>discontinued items</b> at reduced price." }],
-  "cvs":            [{ day:"Sunday",    text:"<b>New weekly deals.</b> Beauty & health clearance." },{ day:"Saturday",  text:"<b>Last day of deals</b> — extra markdowns." },{ day:"💡 Tip",   text:"<b>CVS ExtraCare app</b> for bonus savings." }],
-  "walgreens":      [{ day:"Sunday",    text:"<b>New weekly ad.</b> Personal care & vitamins." },{ day:"💡 Tip",   text:"<b>myWalgreens members</b> get early clearance access." }],
-  "rite aid":       [{ day:"Sunday",    text:"<b>New weekly ad</b> — pharmacy & beauty deals." },{ day:"💡 Tip",   text:"<b>wellness+ rewards</b> for extra discounts." }],
-  "best buy":       [{ day:"Monday",    text:"<b>New open-box & clearance</b> listed in-store & online." },{ day:"Weekend",   text:"Check <b>Open Box section</b> — discounted returns." },{ day:"💡 Tip",   text:"Ask staff about <b>open box items</b> not on floor." }],
-  "home depot":     [{ day:"Anytime",   text:"Look for <b>orange clearance stickers</b> end of aisles." },{ day:"Seasonal",  text:"<b>Spring & Fall</b> — garden & holiday items discounted." },{ day:"💡 Tip",   text:"Check <b>Damaged Box cart</b> near checkout." }],
-  "lowe":           [{ day:"Anytime",   text:"Look for <b>red clearance tags</b> in store." },{ day:"💡 Tip",   text:"Check <b>outdoor section</b> end of season." }],
-  "old navy":       [{ day:"Monday",    text:"<b>New markdowns</b> on clearance racks." },{ day:"💡 Tip",   text:"<b>Extra 50% off clearance</b> often available online." }],
-  "ross":           [{ day:"Tuesday",   text:"<b>New inventory arrives</b> — fresh deals." },{ day:"💡 Tip",   text:"No fixed schedule — shop often!" }],
-  "tj maxx":        [{ day:"Monday",    text:"<b>New shipments</b> — fresh markdowns on clothing & home." },{ day:"💡 Tip",   text:"Check <b>Maxx Values</b> rack for extra clearance." }],
-  "marshalls":      [{ day:"Monday",    text:"<b>New shipments</b> — clothing & home decor." },{ day:"💡 Tip",   text:"Look for <b>red tags</b> for extra markdowns." }],
-  "burlington":     [{ day:"Monday",    text:"<b>New markdowns</b> on clothing & outerwear." },{ day:"💡 Tip",   text:"Check <b>Coat section</b> end of winter for huge deals." }],
-  "mcdonald":       [{ day:"Daily",     text:"<b>McDonald's app</b> — daily deals $1–$3." },{ day:"💡 Tip",   text:"App deals reset <b>Monday–Friday</b>." }],
-  "starbucks":      [{ day:"Afternoon", text:"<b>2–7 PM Happy Hour</b> — BOGO & discounts." },{ day:"💡 Tip",   text:"<b>Starbucks Rewards</b> — earn stars for free drinks." }],
-  "subway":         [{ day:"Daily",     text:"App deals — <b>BOGO or discounted subs</b>." },{ day:"💡 Tip",   text:"<b>Subway MVP Rewards</b> for exclusive deals." }],
-  "chipotle":       [{ day:"Daily",     text:"<b>Chipotle Rewards</b> — earn points & free items." },{ day:"💡 Tip",   text:"Watch for <b>limited time offers</b> in the app." }],
-  "burger king":    [{ day:"Daily",     text:"<b>BK app</b> — $1–$3 deals daily." },{ day:"💡 Tip",   text:"<b>Royal Perks app</b> for exclusive discounts." }],
-  "taco bell":      [{ day:"Daily",     text:"<b>Taco Bell app</b> — daily deals & rewards." },{ day:"💡 Tip",   text:"<b>Happy Hour 2–5 PM</b> — discounted drinks & snacks." }],
-  "wendy":          [{ day:"Daily",     text:"<b>Wendy's app</b> — daily deals & free items." },{ day:"💡 Tip",   text:"<b>Breakfast deals</b> every morning in the app." }],
-  "dunkin":         [{ day:"Daily",     text:"<b>DD Perks app</b> — earn points & free drinks." },{ day:"💡 Tip",   text:"<b>Monday mornings</b> often have special coffee deals." }],
-  "chick-fil-a":    [{ day:"Daily",     text:"<b>Chick-fil-A app</b> — monthly free item offers." },{ day:"💡 Tip",   text:"<b>One rewards program</b> — free food after points." }],
-  "panera":         [{ day:"Daily",     text:"<b>Panera Sip Club</b> — unlimited drinks $11.99/month." },{ day:"💡 Tip",   text:"<b>MyPanera rewards</b> — free items after purchases." }],
-  "petco":          [{ day:"Monday",    text:"<b>New clearance items</b> — pet food & accessories." },{ day:"💡 Tip",   text:"<b>Petco Vital Care app</b> — exclusive discounts." }],
-  "petsmart":       [{ day:"Sunday",    text:"<b>New weekly deals</b> — food & toys." },{ day:"💡 Tip",   text:"<b>Treats loyalty program</b> extra savings." }],
-  "dick's":         [{ day:"Monday",    text:"<b>New clearance markdowns</b> on sporting goods." },{ day:"💡 Tip",   text:"<b>Clearance section online</b> — extra 50% off." }],
-  "rei":            [{ day:"Anytime",   text:"Check <b>REI Outlet</b> for discounted gear." },{ day:"💡 Tip",   text:"<b>REI Co-op members</b> get 10% back." }],
-  "meijer":         [{ day:"Sunday",    text:"<b>New weekly ad</b> — grocery & general deals." },{ day:"💡 Tip",   text:"<b>mPerks app</b> — digital coupons & rewards." }],
-  "sam's club":     [{ day:"Monday",    text:"<b>New instant savings</b> — electronics & food." },{ day:"💡 Tip",   text:"<b>Sam's Club app</b> — exclusive member deals." }],
+  "walmart":        [{ day:"Monday",    text:"<b>New markdowns</b> on clothing & electronics!" },{ day:"Friday",   text:"<b>End-of-week price cuts</b> on groceries & home goods." },{ day:"💡 Tip",  text:"Use Walmart app → filter by <b>Clearance</b>." }],
+  "costco":         [{ day:"Monday",    text:"<b>New markdowns</b> on electronics & appliances." },{ day:"💡 Tip",  text:"Check <b>Costco.com/hot-buys</b> for monthly deals." }],
+  "target":         [{ day:"Monday",    text:"<b>New markdowns begin.</b> Arrive 8–10 AM!" },{ day:"Thursday", text:"<b>Extra clearance</b> in apparel & home sections." },{ day:"💡 Tip",  text:"<b>RED price tags</b> = clearance." }],
+  "kroger":         [{ day:"Wednesday", text:"<b>New weekly ad starts.</b> Best for meat & produce." },{ day:"Sunday",   text:"<b>Last day of ad</b> — double deals sometimes." },{ day:"💡 Tip",  text:"Look for <b>Manager's Special</b> stickers on meat." }],
+  "aldi":           [{ day:"Wednesday", text:"<b>ALDI Finds</b> section resets today!" },{ day:"Sunday",   text:"Check for <b>marked-down produce</b> today." },{ day:"💡 Tip",  text:"Shop <b>early Wednesday</b> — items sell out fast!" }],
+  "big lots":       [{ day:"Saturday",  text:"<b>New clearance items</b> added!" },{ day:"💡 Tip",  text:"<b>BIG Rewards members</b> get extra coupons." }],
+  "dollar general": [{ day:"Saturday",  text:"<b>New digital coupons</b> reset — check app!" },{ day:"💡 Tip",  text:"<b>DG app</b> saves up to 50% on clearance." }],
+  "dollar tree":    [{ day:"Anytime",   text:"Everything <b>$1.25 or less</b> — check end caps." },{ day:"💡 Tip",  text:"Visit after holidays for <b>deep discounts</b>." }],
+  "five below":     [{ day:"Monday",    text:"<b>New arrivals & markdowns</b> added weekly." },{ day:"💡 Tip",  text:"Check <b>back of store</b> for clearance bins." }],
+  "family dollar":  [{ day:"Sunday",    text:"<b>New weekly ad</b> — health & home deals." },{ day:"💡 Tip",  text:"<b>Smart Coupons app</b> for extra savings." }],
+  "whole foods":    [{ day:"Wednesday", text:"<b>New weekly deals</b> start mid-week." },{ day:"💡 Tip",  text:"<b>Amazon Prime</b> members get 10% off yellow tags." }],
+  "trader joe":     [{ day:"Anytime",   text:"Check <b>Fearless Flyer</b> for seasonal deals." },{ day:"💡 Tip",  text:"Ask staff about <b>discontinued items</b> at reduced price." }],
+  "cvs":            [{ day:"Sunday",    text:"<b>New weekly deals.</b> Beauty & health clearance." },{ day:"Saturday", text:"<b>Last day of deals</b> — extra markdowns." },{ day:"💡 Tip",  text:"<b>CVS ExtraCare app</b> for bonus savings." }],
+  "walgreens":      [{ day:"Sunday",    text:"<b>New weekly ad.</b> Personal care & vitamins." },{ day:"💡 Tip",  text:"<b>myWalgreens members</b> get early clearance access." }],
+  "best buy":       [{ day:"Monday",    text:"<b>New open-box & clearance</b> listed today!" },{ day:"Weekend",  text:"Check <b>Open Box section</b> — discounted returns." },{ day:"💡 Tip",  text:"Ask staff about <b>open box items</b> not on floor." }],
+  "home depot":     [{ day:"Anytime",   text:"Look for <b>orange clearance stickers</b>!" },{ day:"Seasonal", text:"<b>Spring & Fall</b> — garden items deeply discounted." },{ day:"💡 Tip",  text:"Check <b>Damaged Box cart</b> near checkout." }],
+  "lowe":           [{ day:"Anytime",   text:"Look for <b>red clearance tags</b> in store." },{ day:"💡 Tip",  text:"Check <b>outdoor section</b> end of season." }],
+  "old navy":       [{ day:"Monday",    text:"<b>New markdowns</b> on clearance racks." },{ day:"💡 Tip",  text:"<b>Extra 50% off clearance</b> online often!" }],
+  "mcdonald":       [{ day:"Daily",     text:"<b>McDonald's app</b> — daily deals $1–$3." },{ day:"💡 Tip",  text:"App deals reset <b>Monday–Friday</b>." }],
+  "starbucks":      [{ day:"Afternoon", text:"<b>2–7 PM Happy Hour</b> — BOGO & discounts." },{ day:"💡 Tip",  text:"<b>Starbucks Rewards</b> — earn stars for free drinks." }],
+  "petco":          [{ day:"Monday",    text:"<b>New clearance items</b> — pet food & accessories." },{ day:"💡 Tip",  text:"<b>Petco Vital Care app</b> — exclusive discounts." }],
+  "petsmart":       [{ day:"Sunday",    text:"<b>New weekly deals</b> — food & toys." },{ day:"💡 Tip",  text:"<b>Treats loyalty program</b> extra savings." }],
+  "dick's":         [{ day:"Monday",    text:"<b>New clearance markdowns</b> on sporting goods." },{ day:"💡 Tip",  text:"<b>Clearance section online</b> — extra 50% off." }],
+  "rei":            [{ day:"Anytime",   text:"Check <b>REI Outlet/Garage</b> for discounted gear." },{ day:"💡 Tip",  text:"<b>REI Co-op members</b> get 10% back." }],
+  "meijer":         [{ day:"Sunday",    text:"<b>New weekly ad</b> — grocery & general deals." },{ day:"💡 Tip",  text:"<b>mPerks app</b> — digital coupons & rewards." }],
+  "sam's club":     [{ day:"Monday",    text:"<b>New instant savings</b> — electronics & food." },{ day:"💡 Tip",  text:"<b>Sam's Club app</b> — exclusive member deals." }],
 };
 
 const CAT_COLORS = {
@@ -918,14 +799,27 @@ function matchStore(name) {
   const lower = name.toLowerCase();
   for (const [key, aliases] of Object.entries(ALIASES)) {
     if (aliases.some(a => lower.includes(a.toLowerCase()))) {
-      if (DEALS_DB[key]) return { ...DEALS_DB[key], matched:true, clearanceKey:key };
+      if (DEALS_DB[key]) {
+        const onlineInfo = ONLINE_DEALS_STORES[key] || {};
+        return { ...DEALS_DB[key], matched:true, clearanceKey:key,
+          dealsUrl: onlineInfo.deals || "",
+          clearUrl: onlineInfo.clearance || "",
+          hasOnline: onlineInfo.hasOnline || false };
+      }
     }
   }
   for (const [key, val] of Object.entries(DEALS_DB)) {
-    if (lower.includes(key)) return { ...val, matched:true, clearanceKey:key };
+    if (lower.includes(key)) {
+      const onlineInfo = ONLINE_DEALS_STORES[key] || {};
+      return { ...val, matched:true, clearanceKey:key,
+        dealsUrl: onlineInfo.deals || "",
+        clearUrl: onlineInfo.clearance || "",
+        hasOnline: onlineInfo.hasOnline || false };
+    }
   }
-  const q = encodeURIComponent(name + " weekly deals");
-  return { category:"Other", deals:`https://www.google.com/search?q=${q}`, color:"#64748b", icon:"🏪", matched:false, clearanceKey:null };
+  return { category:"Other", color:"#64748b", icon:"🏪", matched:false, clearanceKey:null, hasOnline:false,
+    dealsUrl:`https://www.google.com/search?q=${encodeURIComponent(name+' weekly deals')}`,
+    clearUrl:`https://www.google.com/search?q=${encodeURIComponent(name+' clearance sale')}` };
 }
 
 function findItemCategories(item) {
@@ -941,13 +835,13 @@ function showItemResults(item) {
   const itemResults = document.getElementById("item-results");
   if (!item.trim() || !allStoresGlobal.length) { itemResults.innerHTML = ""; return; }
   const cats = findItemCategories(item);
-  let matchingStores = cats ? allStoresGlobal.filter(s => cats.includes(s.category)) : [];
+  let matchingStores = cats ? allStoresGlobal.filter(s => cats.includes(s.category) && s.hasOnline) : [];
 
   if (!matchingStores.length) {
     itemResults.innerHTML = `
       <div class="item-section">
         <div class="item-title">🔍 "<b style="color:#fbbf24">${item}</b>" near <b style="color:#a78bfa">${currentZip}</b></div>
-        <div class="not-found-box">⚠️ No specific stores found for "<b>${item}</b>". Try Google below.</div>
+        <div class="not-found-box">⚠️ No online stores found for "<b>${item}</b>". Try Google below.</div>
         <div class="item-grid">
           <div class="item-card" style="border-color:rgba(99,102,241,0.3);">
             <div class="item-card-top"><span class="item-card-icon">🛍️</span>
@@ -968,7 +862,6 @@ function showItemResults(item) {
       <div class="item-grid">
         ${matchingStores.map(store => {
           const shopLink = getStoreItemLink(store.clearanceKey || store.name.toLowerCase(), item);
-          const clearLink = store.clearanceKey ? (CLEARANCE_LINKS[store.clearanceKey] || store.deals) : store.deals;
           const mapsLink = `https://www.google.com/maps/search/${encodeURIComponent(store.name+' near '+currentZip)}`;
           return `
             <div class="item-card">
@@ -977,7 +870,7 @@ function showItemResults(item) {
                 <div><div class="item-card-name">${store.name}</div><div class="item-card-cat">${store.category}</div></div>
               </div>
               <a href="${shopLink}" target="_blank" class="item-search-btn" style="background:${store.color}cc;border:1px solid ${store.color}55;">🛍️ Shop "${item}" at ${store.name}</a>
-              <a href="${clearLink}" target="_blank" class="item-search-btn" style="background:rgba(249,115,22,0.15);border:1px solid rgba(249,115,22,0.3);color:#fb923c;">🔴 View Clearance</a>
+              <a href="${store.clearUrl}" target="_blank" class="item-search-btn" style="background:rgba(249,115,22,0.15);border:1px solid rgba(249,115,22,0.3);color:#fb923c;">🔴 View Clearance</a>
               <a href="${mapsLink}" target="_blank" class="item-search-btn" style="background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);font-size:12px;">📍 Find on Maps</a>
             </div>`;
         }).join("")}
@@ -985,7 +878,7 @@ function showItemResults(item) {
           <div class="item-card-top"><span class="item-card-icon">🛍️</span>
             <div><div class="item-card-name">Compare Prices</div><div class="item-card-cat">Google Shopping</div></div>
           </div>
-          <a href="https://www.google.com/search?q=${encodeURIComponent(item+' near '+currentZip)}&tbm=shop" target="_blank" class="item-search-btn" style="background:#6366f1cc;border:1px solid #6366f155;">🛒 Compare "${item}" online</a>
+          <a href="https://www.google.com/search?q=${encodeURIComponent(item+' near '+currentZip)}&tbm=shop" target="_blank" class="item-search-btn" style="background:#6366f1cc;border:1px solid #6366f155;">🛒 Compare online</a>
           <a href="https://www.google.com/maps/search/${encodeURIComponent(item+' store near '+currentZip)}" target="_blank" class="item-search-btn" style="background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);font-size:12px;">📍 Find on Maps</a>
         </div>
       </div>
@@ -1033,15 +926,26 @@ async function searchStores() {
       const name = el.tags?.name || el.tags?.brand;
       if (!name || seen.has(name.toLowerCase())) continue;
       seen.add(name.toLowerCase());
-      allStoresGlobal.push({ id:el.id, name, ...matchStore(name) });
+      const storeData = matchStore(name);
+      if (storeData.hasOnline || !storeData.matched) {
+        allStoresGlobal.push({ id:el.id, name, ...storeData });
+      }
     }
 
     const foundNames = allStoresGlobal.map(s => s.name.toLowerCase());
     MAJOR_CHAINS.forEach(chain => {
       const aliases = ALIASES[chain.key] || [chain.key];
       const alreadyFound = foundNames.some(n => aliases.some(a => n.includes(a.toLowerCase())));
-      if (!alreadyFound && DEALS_DB[chain.key]) {
-        allStoresGlobal.push({ id:"manual_"+chain.key, name:chain.name, ...DEALS_DB[chain.key], matched:true, clearanceKey:chain.key, isManual:true });
+      const onlineInfo = ONLINE_DEALS_STORES[chain.key];
+      if (!alreadyFound && DEALS_DB[chain.key] && onlineInfo && onlineInfo.hasOnline) {
+        allStoresGlobal.push({
+          id:"manual_"+chain.key, name:chain.name,
+          ...DEALS_DB[chain.key],
+          matched:true, clearanceKey:chain.key, isManual:true,
+          dealsUrl: onlineInfo.deals,
+          clearUrl: onlineInfo.clearance,
+          hasOnline: true,
+        });
       }
     });
 
@@ -1086,7 +990,6 @@ function renderAll(stores, zip) {
         <div class="stores-grid">
           ${grouped[cat].map(store => {
             const clearance = store.clearanceKey ? CLEARANCE_DB[store.clearanceKey] : null;
-            const clearLink = store.clearanceKey ? (CLEARANCE_LINKS[store.clearanceKey] || store.deals) : store.deals;
             const mapsLink = `https://www.google.com/maps/search/${encodeURIComponent(store.name+' near '+zip)}`;
             return `
               <div class="store-card">
@@ -1098,10 +1001,10 @@ function renderAll(stores, zip) {
                   </div>
                 </div>
                 <div class="card-body">
-                  <a href="${store.deals}" target="_blank" class="deal-btn" style="background:${store.color}cc;border:1px solid ${store.color}55;">
+                  <a href="${store.dealsUrl}" target="_blank" class="deal-btn" style="background:${store.color}cc;border:1px solid ${store.color}55;">
                     🏷️ View Deals & Weekly Ad
                   </a>
-                  <a href="${clearLink}" target="_blank" class="clear-btn">
+                  <a href="${store.clearUrl}" target="_blank" class="clear-btn">
                     🔴 View Clearance & Reduced Items
                   </a>
                   <a href="${mapsLink}" target="_blank" class="maps-btn">
@@ -1110,7 +1013,7 @@ function renderAll(stores, zip) {
                   <div class="clearance-title">📅 Best Days to Shop</div>
                   ${clearance
                     ? clearance.map(r=>`<div class="clearance-item"><span class="day-tag">${r.day}</span><span class="day-text">${r.text}</span></div>`).join("")
-                    : `<p class="no-clearance">No clearance schedule — <a href="https://www.google.com/search?q=${encodeURIComponent(store.name+' clearance sale')}" target="_blank" style="color:#6366f1;">search online</a></p>`
+                    : `<p class="no-clearance">Check store website for clearance info.</p>`
                   }
                 </div>
               </div>`;
