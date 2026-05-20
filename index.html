@@ -20,12 +20,10 @@
     }
     .subtitle { color: #94a3b8; font-size: 15px; margin-bottom: 24px; }
     .search-bar { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
-    input, select {
+    input {
       background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);
       border-radius: 12px; padding: 14px 20px; font-size: 16px; color: #f1f5f9; outline: none;
     }
-    select { cursor: pointer; }
-    select option { background: #1e1b4b; color: #f1f5f9; }
     input::placeholder { color: #94a3b8; }
     #postalInput { width: 200px; letter-spacing: 2px; }
     #itemInput { width: 240px; }
@@ -162,12 +160,6 @@
       border-radius: 14px; padding: 20px; margin-bottom: 16px;
       color: #94a3b8; font-size: 14px; line-height: 1.7;
     }
-    .country-badge {
-      display: inline-block; background: rgba(52,211,153,0.15);
-      border: 1px solid rgba(52,211,153,0.3); color: #34d399;
-      border-radius: 8px; padding: 4px 12px; font-size: 12px;
-      font-weight: 700; margin-bottom: 16px;
-    }
   </style>
 </head>
 <body>
@@ -209,7 +201,7 @@
     <div id="item-results"></div>
     <div id="main-container">
       <div class="empty">🌍<br><br>Enter any postal code worldwide to find nearby stores!<br><br>
-        <span style="font-size:13px;">🇺🇸 US ZIP · 🇮🇳 India PIN · 🇬🇧 UK Postcode · 🇦🇺 AU Postcode · 🇨🇦 CA Postal · and more!</span>
+        <span style="font-size:13px;">🇺🇸 US ZIP · 🇮🇳 India PIN · 🇬🇧 UK Postcode · 🇦🇺 AU · 🇨🇦 CA · 🌍 Any country!</span>
       </div>
     </div>
   </div>
@@ -217,73 +209,363 @@
 
 <script>
 
-// ── TODAY'S DEALS (US focused) ─────────────────────────
-const DAILY_DEALS = {
-  0: { label:"Sunday ☀️", deals:[
-    { icon:"💊", name:"CVS",           tip:"Last day of weekly deals!",    color:"#CC0000", dealsUrl:"https://www.cvs.com/weekly-ad/circulars",                                              clearUrl:"https://www.cvs.com/weekly-ad/circulars",                                              mapUrl:"https://www.google.com/maps/search/CVS+pharmacy+near+me" },
-    { icon:"💊", name:"Walgreens",     tip:"New weekly ad starts!",        color:"#E31837", dealsUrl:"https://www.walgreens.com/offers/offers.jsp",                                          clearUrl:"https://www.walgreens.com/offers/offers.jsp",                                          mapUrl:"https://www.google.com/maps/search/Walgreens+near+me" },
-    { icon:"🥬", name:"Kroger",        tip:"Last day of weekly ad!",       color:"#00539F", dealsUrl:"https://www.kroger.com/savings/cl/weeklyad",                                           clearUrl:"https://www.kroger.com/savings/cl/weeklyad",                                           mapUrl:"https://www.google.com/maps/search/Kroger+near+me" },
-    { icon:"🐾", name:"PetSmart",      tip:"New weekly pet deals!",        color:"#E31837", dealsUrl:"https://www.petsmart.com/featured-sale-items/",                                        clearUrl:"https://www.petsmart.com/featured-sale-items/",                                        mapUrl:"https://www.google.com/maps/search/PetSmart+near+me" },
-    { icon:"🛒", name:"Aldi",          tip:"Marked-down produce today!",   color:"#00438A", dealsUrl:"https://www.aldi.us/en/weekly-specials/",                                              clearUrl:"https://www.aldi.us/en/weekly-specials/",                                              mapUrl:"https://www.google.com/maps/search/Aldi+near+me" },
-    { icon:"💵", name:"Family Dollar", tip:"New weekly ad starts!",        color:"#CC0000", dealsUrl:"https://www.familydollar.com/weekly-ad/",                                              clearUrl:"https://www.familydollar.com/weekly-ad/",                                              mapUrl:"https://www.google.com/maps/search/Family+Dollar+near+me" },
-  ]},
-  1: { label:"Monday 🌟", deals:[
-    { icon:"🛒", name:"Walmart",       tip:"New clearance markdowns!",     color:"#0071CE", dealsUrl:"https://www.walmart.com/store-finder",                                                clearUrl:"https://www.walmart.com/browse/clearance",                                             mapUrl:"https://www.google.com/maps/search/Walmart+near+me" },
-    { icon:"🎯", name:"Target",        tip:"New markdowns today!",         color:"#CC0000", dealsUrl:"https://www.target.com/c/target-circle-deals/-/N-4tfyn",                              clearUrl:"https://www.target.com/c/clearance/-/N-5q0e1",                                         mapUrl:"https://www.google.com/maps/search/Target+near+me" },
-    { icon:"💻", name:"Best Buy",      tip:"New open-box items listed!",   color:"#003087", dealsUrl:"https://www.bestbuy.com/site/misc/deal-of-the-day/pcmcat248000050016.c",              clearUrl:"https://www.bestbuy.com/site/electronics/open-box/pcmcat211400050026.c",               mapUrl:"https://www.google.com/maps/search/Best+Buy+near+me" },
-    { icon:"🐾", name:"Petco",         tip:"New clearance pet items!",     color:"#003087", dealsUrl:"https://www.petco.com/shop/en/petcostore/category/deals",                             clearUrl:"https://www.petco.com/shop/en/petcostore/category/deals",                              mapUrl:"https://www.google.com/maps/search/Petco+near+me" },
-    { icon:"💵", name:"Five Below",    tip:"New arrivals & markdowns!",    color:"#A020F0", dealsUrl:"https://www.fivebelow.com/content/fivebelow/deals.html",                              clearUrl:"https://www.fivebelow.com/content/fivebelow/deals.html",                               mapUrl:"https://www.google.com/maps/search/Five+Below+near+me" },
-    { icon:"🏬", name:"Sam's Club",    tip:"New instant savings today!",   color:"#007DC6", dealsUrl:"https://www.samsclub.com/instant-savings",                                            clearUrl:"https://www.samsclub.com/savings",                                                     mapUrl:"https://www.google.com/maps/search/Sams+Club+near+me" },
-  ]},
-  2: { label:"Tuesday 🛍️", deals:[
-    { icon:"🛒", name:"Walmart",       tip:"Monday clearance still active!",color:"#0071CE",dealsUrl:"https://www.walmart.com/browse/clearance",                                            clearUrl:"https://www.walmart.com/browse/clearance",                                             mapUrl:"https://www.google.com/maps/search/Walmart+near+me" },
-    { icon:"🎯", name:"Target",        tip:"Clearance still active!",      color:"#CC0000", dealsUrl:"https://www.target.com/c/clearance/-/N-5q0e1",                                       clearUrl:"https://www.target.com/c/clearance/-/N-5q0e1",                                         mapUrl:"https://www.google.com/maps/search/Target+near+me" },
-    { icon:"💵", name:"Dollar General",tip:"Check DG weekly ad!",         color:"#FFD700", dealsUrl:"https://www.dollargeneral.com/weekly-ad",                                             clearUrl:"https://www.dollargeneral.com/weekly-ad",                                              mapUrl:"https://www.google.com/maps/search/Dollar+General+near+me" },
-    { icon:"💊", name:"CVS",           tip:"Weekly ad active!",            color:"#CC0000", dealsUrl:"https://www.cvs.com/weekly-ad/circulars",                                             clearUrl:"https://www.cvs.com/weekly-ad/circulars",                                              mapUrl:"https://www.google.com/maps/search/CVS+near+me" },
-    { icon:"🏬", name:"Costco",        tip:"Check hot buys this week!",    color:"#003087", dealsUrl:"https://www.costco.com/hot-buys.html",                                                clearUrl:"https://www.costco.com/hot-buys.html",                                                 mapUrl:"https://www.google.com/maps/search/Costco+near+me" },
-    { icon:"🏷️", name:"Big Lots",     tip:"Check furniture clearance!",   color:"#E31837", dealsUrl:"https://www.biglots.com/deals",                                                       clearUrl:"https://www.biglots.com/deals",                                                        mapUrl:"https://www.google.com/maps/search/Big+Lots+near+me" },
-  ]},
-  3: { label:"Wednesday 🥬", deals:[
-    { icon:"🛒", name:"Aldi",          tip:"🔥 ALDI Finds reset today!",   color:"#00438A", dealsUrl:"https://www.aldi.us/en/weekly-specials/",                                             clearUrl:"https://www.aldi.us/en/weekly-specials/",                                              mapUrl:"https://www.google.com/maps/search/Aldi+near+me" },
-    { icon:"🥬", name:"Kroger",        tip:"New weekly ad starts!",        color:"#00539F", dealsUrl:"https://www.kroger.com/savings/cl/weeklyad",                                          clearUrl:"https://www.kroger.com/savings/cl/weeklyad",                                           mapUrl:"https://www.google.com/maps/search/Kroger+near+me" },
-    { icon:"🥦", name:"Whole Foods",   tip:"New weekly deals mid-week!",   color:"#00674B", dealsUrl:"https://www.wholefoodsmarket.com/sales-flyer",                                        clearUrl:"https://www.wholefoodsmarket.com/sales-flyer",                                         mapUrl:"https://www.google.com/maps/search/Whole+Foods+near+me" },
-    { icon:"🛒", name:"Lidl",          tip:"New weekly specials today!",   color:"#003087", dealsUrl:"https://www.lidl.com/en/weekly-specials.htm",                                         clearUrl:"https://www.lidl.com/en/weekly-specials.htm",                                          mapUrl:"https://www.google.com/maps/search/Lidl+near+me" },
-    { icon:"💵", name:"Dollar Tree",   tip:"Check end caps for deals!",    color:"#2E7D32", dealsUrl:"https://www.dollartree.com/",                                                         clearUrl:"https://www.dollartree.com/",                                                          mapUrl:"https://www.google.com/maps/search/Dollar+Tree+near+me" },
-    { icon:"🎯", name:"Target",        tip:"Check bakery evening deals!",  color:"#CC0000", dealsUrl:"https://www.target.com/c/clearance/-/N-5q0e1",                                       clearUrl:"https://www.target.com/c/clearance/-/N-5q0e1",                                         mapUrl:"https://www.google.com/maps/search/Target+near+me" },
-  ]},
-  4: { label:"Thursday 🏷️", deals:[
-    { icon:"🎯", name:"Target",        tip:"Extra clearance added today!", color:"#CC0000",  dealsUrl:"https://www.target.com/c/clearance/-/N-5q0e1",                                       clearUrl:"https://www.target.com/c/clearance/-/N-5q0e1",                                         mapUrl:"https://www.google.com/maps/search/Target+near+me" },
-    { icon:"🔨", name:"Home Depot",    tip:"Direct to clearance page!",    color:"#F96302", dealsUrl:"https://www.homedepot.com/b/Clearance/N-5yc1vZc9gu",                                  clearUrl:"https://www.homedepot.com/b/Clearance/N-5yc1vZc9gu",                                  mapUrl:"https://www.google.com/maps/search/Home+Depot+near+me" },
-    { icon:"🔧", name:"Lowe's",        tip:"Direct to deals page!",        color:"#004990", dealsUrl:"https://www.lowes.com/l/deals.html",                                                  clearUrl:"https://www.lowes.com/l/deals.html",                                                   mapUrl:"https://www.google.com/maps/search/Lowes+near+me" },
-    { icon:"🏷️", name:"Big Lots",     tip:"Furniture & home clearance!",  color:"#E31837", dealsUrl:"https://www.biglots.com/deals",                                                       clearUrl:"https://www.biglots.com/deals",                                                        mapUrl:"https://www.google.com/maps/search/Big+Lots+near+me" },
-    { icon:"🥬", name:"Kroger",        tip:"Manager specials on meat!",    color:"#00539F", dealsUrl:"https://www.kroger.com/savings/cl/weeklyad",                                          clearUrl:"https://www.kroger.com/savings/cl/weeklyad",                                           mapUrl:"https://www.google.com/maps/search/Kroger+near+me" },
-    { icon:"🛒", name:"Walmart",       tip:"Clearance active all week!",   color:"#0071CE", dealsUrl:"https://www.walmart.com/browse/clearance",                                            clearUrl:"https://www.walmart.com/browse/clearance",                                             mapUrl:"https://www.google.com/maps/search/Walmart+near+me" },
-  ]},
-  5: { label:"Friday 🎉", deals:[
-    { icon:"🛒", name:"Walmart",       tip:"End-of-week price cuts!",      color:"#0071CE", dealsUrl:"https://www.walmart.com/browse/clearance",                                            clearUrl:"https://www.walmart.com/browse/clearance",                                             mapUrl:"https://www.google.com/maps/search/Walmart+near+me" },
-    { icon:"💻", name:"Best Buy",      tip:"Open-box deals this weekend!", color:"#003087",  dealsUrl:"https://www.bestbuy.com/site/electronics/open-box/pcmcat211400050026.c",              clearUrl:"https://www.bestbuy.com/site/electronics/open-box/pcmcat211400050026.c",               mapUrl:"https://www.google.com/maps/search/Best+Buy+near+me" },
-    { icon:"🔨", name:"Home Depot",    tip:"Direct clearance page!",       color:"#F96302", dealsUrl:"https://www.homedepot.com/b/Clearance/N-5yc1vZc9gu",                                  clearUrl:"https://www.homedepot.com/b/Clearance/N-5yc1vZc9gu",                                  mapUrl:"https://www.google.com/maps/search/Home+Depot+near+me" },
-    { icon:"🥦", name:"Whole Foods",   tip:"Weekly deals still active!",   color:"#00674B", dealsUrl:"https://www.wholefoodsmarket.com/sales-flyer",                                        clearUrl:"https://www.wholefoodsmarket.com/sales-flyer",                                         mapUrl:"https://www.google.com/maps/search/Whole+Foods+near+me" },
-    { icon:"🌻", name:"Trader Joe's",  tip:"Fearless Flyer deals!",        color:"#BB0000", dealsUrl:"https://www.traderjoes.com/home/fearless-flyer",                                      clearUrl:"https://www.traderjoes.com/home/fearless-flyer",                                       mapUrl:"https://www.google.com/maps/search/Trader+Joes+near+me" },
-    { icon:"💵", name:"Dollar General",tip:"Check DG weekly ad!",         color:"#FFD700",  dealsUrl:"https://www.dollargeneral.com/weekly-ad",                                             clearUrl:"https://www.dollargeneral.com/weekly-ad",                                              mapUrl:"https://www.google.com/maps/search/Dollar+General+near+me" },
-  ]},
-  6: { label:"Saturday 🛒", deals:[
-    { icon:"💊", name:"CVS",           tip:"Last day of weekly deals!",    color:"#CC0000", dealsUrl:"https://www.cvs.com/weekly-ad/circulars",                                              clearUrl:"https://www.cvs.com/weekly-ad/circulars",                                              mapUrl:"https://www.google.com/maps/search/CVS+near+me" },
-    { icon:"🏷️", name:"Big Lots",     tip:"New clearance added today!",   color:"#E31837", dealsUrl:"https://www.biglots.com/deals",                                                       clearUrl:"https://www.biglots.com/deals",                                                        mapUrl:"https://www.google.com/maps/search/Big+Lots+near+me" },
-    { icon:"💵", name:"Dollar General",tip:"New digital coupons reset!",  color:"#FFD700",  dealsUrl:"https://www.dollargeneral.com/weekly-ad",                                             clearUrl:"https://www.dollargeneral.com/weekly-ad",                                              mapUrl:"https://www.google.com/maps/search/Dollar+General+near+me" },
-    { icon:"💻", name:"Best Buy",      tip:"Weekend open-box deals!",      color:"#003087", dealsUrl:"https://www.bestbuy.com/site/electronics/open-box/pcmcat211400050026.c",              clearUrl:"https://www.bestbuy.com/site/electronics/open-box/pcmcat211400050026.c",               mapUrl:"https://www.google.com/maps/search/Best+Buy+near+me" },
-    { icon:"🏬", name:"Costco",        tip:"Check Hot Buys this weekend!", color:"#003087",  dealsUrl:"https://www.costco.com/hot-buys.html",                                               clearUrl:"https://www.costco.com/hot-buys.html",                                                 mapUrl:"https://www.google.com/maps/search/Costco+near+me" },
-    { icon:"💊", name:"Walgreens",     tip:"Last day of weekly ad!",       color:"#E31837", dealsUrl:"https://www.walgreens.com/offers/offers.jsp",                                         clearUrl:"https://www.walgreens.com/offers/offers.jsp",                                          mapUrl:"https://www.google.com/maps/search/Walgreens+near+me" },
-  ]},
+// ── COUNTRY DEALS DATABASE ─────────────────────────────
+const COUNTRY_DEALS = {
+
+  // 🇺🇸 UNITED STATES
+  "US": {
+    flag: "🇺🇸", name: "United States",
+    days: {
+      0: { label:"Sunday ☀️", deals:[
+        { icon:"💊", name:"CVS",           tip:"Last day of weekly deals!",    color:"#CC0000", dealsUrl:"https://www.cvs.com/weekly-ad/circulars",                                        clearUrl:"https://www.cvs.com/weekly-ad/circulars",                                        mapUrl:"https://www.google.com/maps/search/CVS+near+me" },
+        { icon:"💊", name:"Walgreens",     tip:"New weekly ad starts!",        color:"#E31837", dealsUrl:"https://www.walgreens.com/offers/offers.jsp",                                  clearUrl:"https://www.walgreens.com/offers/offers.jsp",                                  mapUrl:"https://www.google.com/maps/search/Walgreens+near+me" },
+        { icon:"🥬", name:"Kroger",        tip:"Last day of weekly ad!",       color:"#00539F", dealsUrl:"https://www.kroger.com/savings/cl/weeklyad",                                   clearUrl:"https://www.kroger.com/savings/cl/weeklyad",                                   mapUrl:"https://www.google.com/maps/search/Kroger+near+me" },
+        { icon:"🛒", name:"Aldi",          tip:"Marked-down produce today!",   color:"#00438A", dealsUrl:"https://www.aldi.us/en/weekly-specials/",                                      clearUrl:"https://www.aldi.us/en/weekly-specials/",                                      mapUrl:"https://www.google.com/maps/search/Aldi+near+me" },
+        { icon:"🐾", name:"PetSmart",      tip:"New weekly pet deals!",        color:"#E31837", dealsUrl:"https://www.petsmart.com/featured-sale-items/",                                clearUrl:"https://www.petsmart.com/featured-sale-items/",                                mapUrl:"https://www.google.com/maps/search/PetSmart+near+me" },
+        { icon:"💵", name:"Family Dollar", tip:"New weekly ad starts!",        color:"#CC0000", dealsUrl:"https://www.familydollar.com/weekly-ad/",                                      clearUrl:"https://www.familydollar.com/weekly-ad/",                                      mapUrl:"https://www.google.com/maps/search/Family+Dollar+near+me" },
+      ]},
+      1: { label:"Monday 🌟", deals:[
+        { icon:"🛒", name:"Walmart",       tip:"New clearance markdowns!",     color:"#0071CE", dealsUrl:"https://www.walmart.com/store-finder",                                         clearUrl:"https://www.walmart.com/browse/clearance",                                     mapUrl:"https://www.google.com/maps/search/Walmart+near+me" },
+        { icon:"🎯", name:"Target",        tip:"New markdowns today!",         color:"#CC0000", dealsUrl:"https://www.target.com/c/target-circle-deals/-/N-4tfyn",                      clearUrl:"https://www.target.com/c/clearance/-/N-5q0e1",                                 mapUrl:"https://www.google.com/maps/search/Target+near+me" },
+        { icon:"💻", name:"Best Buy",      tip:"New open-box items listed!",   color:"#003087", dealsUrl:"https://www.bestbuy.com/site/misc/deal-of-the-day/pcmcat248000050016.c",      clearUrl:"https://www.bestbuy.com/site/electronics/open-box/pcmcat211400050026.c",       mapUrl:"https://www.google.com/maps/search/Best+Buy+near+me" },
+        { icon:"🐾", name:"Petco",         tip:"New clearance pet items!",     color:"#003087", dealsUrl:"https://www.petco.com/shop/en/petcostore/category/deals",                     clearUrl:"https://www.petco.com/shop/en/petcostore/category/deals",                      mapUrl:"https://www.google.com/maps/search/Petco+near+me" },
+        { icon:"💵", name:"Five Below",    tip:"New arrivals & markdowns!",    color:"#A020F0", dealsUrl:"https://www.fivebelow.com/content/fivebelow/deals.html",                      clearUrl:"https://www.fivebelow.com/content/fivebelow/deals.html",                       mapUrl:"https://www.google.com/maps/search/Five+Below+near+me" },
+        { icon:"🏬", name:"Sam's Club",    tip:"New instant savings today!",   color:"#007DC6", dealsUrl:"https://www.samsclub.com/instant-savings",                                    clearUrl:"https://www.samsclub.com/savings",                                             mapUrl:"https://www.google.com/maps/search/Sams+Club+near+me" },
+      ]},
+      2: { label:"Tuesday 🛍️", deals:[
+        { icon:"🛒", name:"Walmart",       tip:"Monday clearance still active!",color:"#0071CE",dealsUrl:"https://www.walmart.com/browse/clearance",                                    clearUrl:"https://www.walmart.com/browse/clearance",                                     mapUrl:"https://www.google.com/maps/search/Walmart+near+me" },
+        { icon:"🎯", name:"Target",        tip:"Clearance still active!",      color:"#CC0000", dealsUrl:"https://www.target.com/c/clearance/-/N-5q0e1",                               clearUrl:"https://www.target.com/c/clearance/-/N-5q0e1",                                 mapUrl:"https://www.google.com/maps/search/Target+near+me" },
+        { icon:"💵", name:"Dollar General",tip:"Check DG weekly ad!",         color:"#FFD700",  dealsUrl:"https://www.dollargeneral.com/weekly-ad",                                    clearUrl:"https://www.dollargeneral.com/weekly-ad",                                      mapUrl:"https://www.google.com/maps/search/Dollar+General+near+me" },
+        { icon:"💊", name:"CVS",           tip:"Weekly ad active!",            color:"#CC0000", dealsUrl:"https://www.cvs.com/weekly-ad/circulars",                                     clearUrl:"https://www.cvs.com/weekly-ad/circulars",                                      mapUrl:"https://www.google.com/maps/search/CVS+near+me" },
+        { icon:"🏬", name:"Costco",        tip:"Check hot buys this week!",    color:"#003087", dealsUrl:"https://www.costco.com/hot-buys.html",                                        clearUrl:"https://www.costco.com/hot-buys.html",                                         mapUrl:"https://www.google.com/maps/search/Costco+near+me" },
+        { icon:"🏷️", name:"Big Lots",     tip:"Check furniture clearance!",   color:"#E31837", dealsUrl:"https://www.biglots.com/deals",                                               clearUrl:"https://www.biglots.com/deals",                                                mapUrl:"https://www.google.com/maps/search/Big+Lots+near+me" },
+      ]},
+      3: { label:"Wednesday 🥬", deals:[
+        { icon:"🛒", name:"Aldi",          tip:"🔥 ALDI Finds reset today!",   color:"#00438A", dealsUrl:"https://www.aldi.us/en/weekly-specials/",                                     clearUrl:"https://www.aldi.us/en/weekly-specials/",                                      mapUrl:"https://www.google.com/maps/search/Aldi+near+me" },
+        { icon:"🥬", name:"Kroger",        tip:"New weekly ad starts!",        color:"#00539F", dealsUrl:"https://www.kroger.com/savings/cl/weeklyad",                                  clearUrl:"https://www.kroger.com/savings/cl/weeklyad",                                   mapUrl:"https://www.google.com/maps/search/Kroger+near+me" },
+        { icon:"🥦", name:"Whole Foods",   tip:"New weekly deals mid-week!",   color:"#00674B", dealsUrl:"https://www.wholefoodsmarket.com/sales-flyer",                                clearUrl:"https://www.wholefoodsmarket.com/sales-flyer",                                 mapUrl:"https://www.google.com/maps/search/Whole+Foods+near+me" },
+        { icon:"🛒", name:"Lidl",          tip:"New weekly specials today!",   color:"#003087", dealsUrl:"https://www.lidl.com/en/weekly-specials.htm",                                 clearUrl:"https://www.lidl.com/en/weekly-specials.htm",                                  mapUrl:"https://www.google.com/maps/search/Lidl+near+me" },
+        { icon:"💵", name:"Dollar Tree",   tip:"Check end caps for deals!",    color:"#2E7D32", dealsUrl:"https://www.dollartree.com/",                                                 clearUrl:"https://www.dollartree.com/",                                                  mapUrl:"https://www.google.com/maps/search/Dollar+Tree+near+me" },
+        { icon:"🎯", name:"Target",        tip:"Check bakery evening deals!",  color:"#CC0000", dealsUrl:"https://www.target.com/c/clearance/-/N-5q0e1",                               clearUrl:"https://www.target.com/c/clearance/-/N-5q0e1",                                 mapUrl:"https://www.google.com/maps/search/Target+near+me" },
+      ]},
+      4: { label:"Thursday 🏷️", deals:[
+        { icon:"🎯", name:"Target",        tip:"Extra clearance added today!", color:"#CC0000",  dealsUrl:"https://www.target.com/c/clearance/-/N-5q0e1",                               clearUrl:"https://www.target.com/c/clearance/-/N-5q0e1",                                 mapUrl:"https://www.google.com/maps/search/Target+near+me" },
+        { icon:"🔨", name:"Home Depot",    tip:"Direct to clearance page!",    color:"#F96302", dealsUrl:"https://www.homedepot.com/b/Clearance/N-5yc1vZc9gu",                          clearUrl:"https://www.homedepot.com/b/Clearance/N-5yc1vZc9gu",                          mapUrl:"https://www.google.com/maps/search/Home+Depot+near+me" },
+        { icon:"🔧", name:"Lowe's",        tip:"Direct to deals page!",        color:"#004990", dealsUrl:"https://www.lowes.com/l/deals.html",                                          clearUrl:"https://www.lowes.com/l/deals.html",                                           mapUrl:"https://www.google.com/maps/search/Lowes+near+me" },
+        { icon:"🏷️", name:"Big Lots",     tip:"Furniture & home clearance!",  color:"#E31837", dealsUrl:"https://www.biglots.com/deals",                                               clearUrl:"https://www.biglots.com/deals",                                                mapUrl:"https://www.google.com/maps/search/Big+Lots+near+me" },
+        { icon:"🥬", name:"Kroger",        tip:"Manager specials on meat!",    color:"#00539F", dealsUrl:"https://www.kroger.com/savings/cl/weeklyad",                                  clearUrl:"https://www.kroger.com/savings/cl/weeklyad",                                   mapUrl:"https://www.google.com/maps/search/Kroger+near+me" },
+        { icon:"🛒", name:"Walmart",       tip:"Clearance active all week!",   color:"#0071CE", dealsUrl:"https://www.walmart.com/browse/clearance",                                    clearUrl:"https://www.walmart.com/browse/clearance",                                     mapUrl:"https://www.google.com/maps/search/Walmart+near+me" },
+      ]},
+      5: { label:"Friday 🎉", deals:[
+        { icon:"🛒", name:"Walmart",       tip:"End-of-week price cuts!",      color:"#0071CE", dealsUrl:"https://www.walmart.com/browse/clearance",                                    clearUrl:"https://www.walmart.com/browse/clearance",                                     mapUrl:"https://www.google.com/maps/search/Walmart+near+me" },
+        { icon:"💻", name:"Best Buy",      tip:"Open-box deals this weekend!", color:"#003087",  dealsUrl:"https://www.bestbuy.com/site/electronics/open-box/pcmcat211400050026.c",      clearUrl:"https://www.bestbuy.com/site/electronics/open-box/pcmcat211400050026.c",       mapUrl:"https://www.google.com/maps/search/Best+Buy+near+me" },
+        { icon:"🔨", name:"Home Depot",    tip:"Direct clearance page!",       color:"#F96302", dealsUrl:"https://www.homedepot.com/b/Clearance/N-5yc1vZc9gu",                          clearUrl:"https://www.homedepot.com/b/Clearance/N-5yc1vZc9gu",                          mapUrl:"https://www.google.com/maps/search/Home+Depot+near+me" },
+        { icon:"🥦", name:"Whole Foods",   tip:"Weekly deals still active!",   color:"#00674B", dealsUrl:"https://www.wholefoodsmarket.com/sales-flyer",                                clearUrl:"https://www.wholefoodsmarket.com/sales-flyer",                                 mapUrl:"https://www.google.com/maps/search/Whole+Foods+near+me" },
+        { icon:"🌻", name:"Trader Joe's",  tip:"Fearless Flyer deals!",        color:"#BB0000", dealsUrl:"https://www.traderjoes.com/home/fearless-flyer",                              clearUrl:"https://www.traderjoes.com/home/fearless-flyer",                               mapUrl:"https://www.google.com/maps/search/Trader+Joes+near+me" },
+        { icon:"💵", name:"Dollar General",tip:"Check DG weekly ad!",         color:"#FFD700",  dealsUrl:"https://www.dollargeneral.com/weekly-ad",                                    clearUrl:"https://www.dollargeneral.com/weekly-ad",                                      mapUrl:"https://www.google.com/maps/search/Dollar+General+near+me" },
+      ]},
+      6: { label:"Saturday 🛒", deals:[
+        { icon:"💊", name:"CVS",           tip:"Last day of weekly deals!",    color:"#CC0000", dealsUrl:"https://www.cvs.com/weekly-ad/circulars",                                      clearUrl:"https://www.cvs.com/weekly-ad/circulars",                                      mapUrl:"https://www.google.com/maps/search/CVS+near+me" },
+        { icon:"🏷️", name:"Big Lots",     tip:"New clearance added today!",   color:"#E31837", dealsUrl:"https://www.biglots.com/deals",                                               clearUrl:"https://www.biglots.com/deals",                                                mapUrl:"https://www.google.com/maps/search/Big+Lots+near+me" },
+        { icon:"💵", name:"Dollar General",tip:"New digital coupons reset!",  color:"#FFD700",  dealsUrl:"https://www.dollargeneral.com/weekly-ad",                                    clearUrl:"https://www.dollargeneral.com/weekly-ad",                                      mapUrl:"https://www.google.com/maps/search/Dollar+General+near+me" },
+        { icon:"💻", name:"Best Buy",      tip:"Weekend open-box deals!",      color:"#003087", dealsUrl:"https://www.bestbuy.com/site/electronics/open-box/pcmcat211400050026.c",      clearUrl:"https://www.bestbuy.com/site/electronics/open-box/pcmcat211400050026.c",       mapUrl:"https://www.google.com/maps/search/Best+Buy+near+me" },
+        { icon:"🏬", name:"Costco",        tip:"Check Hot Buys this weekend!", color:"#003087",  dealsUrl:"https://www.costco.com/hot-buys.html",                                       clearUrl:"https://www.costco.com/hot-buys.html",                                         mapUrl:"https://www.google.com/maps/search/Costco+near+me" },
+        { icon:"💊", name:"Walgreens",     tip:"Last day of weekly ad!",       color:"#E31837", dealsUrl:"https://www.walgreens.com/offers/offers.jsp",                                 clearUrl:"https://www.walgreens.com/offers/offers.jsp",                                  mapUrl:"https://www.google.com/maps/search/Walgreens+near+me" },
+      ]},
+    }
+  },
+
+  // 🇮🇳 INDIA
+  "IN": {
+    flag: "🇮🇳", name: "India",
+    days: {
+      0: { label:"Sunday ☀️", deals:[
+        { icon:"🛒", name:"Amazon India",  tip:"Sunday special deals live!",   color:"#FF9900", dealsUrl:"https://www.amazon.in/deals",                                                  clearUrl:"https://www.amazon.in/gp/goldbox",                                             mapUrl:"https://www.google.com/maps/search/Amazon+store+near+me" },
+        { icon:"🛍️", name:"Flipkart",     tip:"Big savings today!",           color:"#2874F0", dealsUrl:"https://www.flipkart.com/offers-store",                                        clearUrl:"https://www.flipkart.com/offers-store",                                        mapUrl:"https://www.google.com/maps/search/Flipkart+store+near+me" },
+        { icon:"🥬", name:"BigBasket",     tip:"Fresh deals on groceries!",    color:"#84C225", dealsUrl:"https://www.bigbasket.com/offers/",                                            clearUrl:"https://www.bigbasket.com/offers/",                                            mapUrl:"https://www.google.com/maps/search/BigBasket+near+me" },
+        { icon:"🏪", name:"DMart",         tip:"Weekend deals at DMart!",      color:"#E31837", dealsUrl:"https://www.dmart.in/deals",                                                   clearUrl:"https://www.dmart.in/deals",                                                   mapUrl:"https://www.google.com/maps/search/DMart+near+me" },
+        { icon:"💊", name:"1mg",           tip:"Health deals today!",          color:"#E40046", dealsUrl:"https://www.1mg.com/offers",                                                   clearUrl:"https://www.1mg.com/offers",                                                   mapUrl:"https://www.google.com/maps/search/1mg+near+me" },
+        { icon:"🍕", name:"Swiggy",        tip:"Food deals this Sunday!",      color:"#FC8019", dealsUrl:"https://www.swiggy.com/offers",                                                clearUrl:"https://www.swiggy.com/offers",                                                mapUrl:"https://www.google.com/maps/search/Swiggy+restaurant+near+me" },
+      ]},
+      1: { label:"Monday 🌟", deals:[
+        { icon:"🛒", name:"Amazon India",  tip:"Monday deals are live!",       color:"#FF9900", dealsUrl:"https://www.amazon.in/deals",                                                  clearUrl:"https://www.amazon.in/gp/goldbox",                                             mapUrl:"https://www.google.com/maps/search/Amazon+store+near+me" },
+        { icon:"🛍️", name:"Flipkart",     tip:"New week new deals!",          color:"#2874F0", dealsUrl:"https://www.flipkart.com/offers-store",                                        clearUrl:"https://www.flipkart.com/offers-store",                                        mapUrl:"https://www.google.com/maps/search/Flipkart+store+near+me" },
+        { icon:"🏪", name:"Reliance Fresh",tip:"Fresh weekly offers!",         color:"#0078C8", dealsUrl:"https://www.reliancesmart.in/offers",                                          clearUrl:"https://www.reliancesmart.in/offers",                                          mapUrl:"https://www.google.com/maps/search/Reliance+Fresh+near+me" },
+        { icon:"🥬", name:"BigBasket",     tip:"Monday grocery deals!",        color:"#84C225", dealsUrl:"https://www.bigbasket.com/offers/",                                            clearUrl:"https://www.bigbasket.com/offers/",                                            mapUrl:"https://www.google.com/maps/search/BigBasket+near+me" },
+        { icon:"💻", name:"Croma",         tip:"New electronics deals!",       color:"#E31837", dealsUrl:"https://www.croma.com/offers",                                                 clearUrl:"https://www.croma.com/offers",                                                 mapUrl:"https://www.google.com/maps/search/Croma+near+me" },
+        { icon:"👗", name:"Myntra",        tip:"Fashion deals this week!",     color:"#FF3F6C", dealsUrl:"https://www.myntra.com/sale",                                                  clearUrl:"https://www.myntra.com/sale",                                                  mapUrl:"https://www.google.com/maps/search/Myntra+store+near+me" },
+      ]},
+      2: { label:"Tuesday 🛍️", deals:[
+        { icon:"🛍️", name:"Flipkart",     tip:"Super Saver Tuesday deals!",   color:"#2874F0", dealsUrl:"https://www.flipkart.com/offers-store",                                        clearUrl:"https://www.flipkart.com/offers-store",                                        mapUrl:"https://www.google.com/maps/search/Flipkart+store+near+me" },
+        { icon:"🛒", name:"Amazon India",  tip:"Tuesday special prices!",      color:"#FF9900", dealsUrl:"https://www.amazon.in/deals",                                                  clearUrl:"https://www.amazon.in/gp/goldbox",                                             mapUrl:"https://www.google.com/maps/search/Amazon+near+me" },
+        { icon:"🏪", name:"DMart",         tip:"Midweek savings at DMart!",    color:"#E31837", dealsUrl:"https://www.dmart.in/deals",                                                   clearUrl:"https://www.dmart.in/deals",                                                   mapUrl:"https://www.google.com/maps/search/DMart+near+me" },
+        { icon:"💊", name:"Netmeds",       tip:"Medicine deals today!",        color:"#009B77", dealsUrl:"https://www.netmeds.com/offers",                                               clearUrl:"https://www.netmeds.com/offers",                                               mapUrl:"https://www.google.com/maps/search/Netmeds+near+me" },
+        { icon:"🍔", name:"Zomato",        tip:"Food deals & discounts!",      color:"#E23744", dealsUrl:"https://www.zomato.com/offers",                                                clearUrl:"https://www.zomato.com/offers",                                                mapUrl:"https://www.google.com/maps/search/Zomato+restaurant+near+me" },
+        { icon:"🏠", name:"Pepperfry",     tip:"Furniture deals this week!",   color:"#F47B20", dealsUrl:"https://www.pepperfry.com/offers.html",                                        clearUrl:"https://www.pepperfry.com/offers.html",                                        mapUrl:"https://www.google.com/maps/search/Pepperfry+near+me" },
+      ]},
+      3: { label:"Wednesday 🥬", deals:[
+        { icon:"🥬", name:"BigBasket",     tip:"Wednesday fresh deals!",       color:"#84C225", dealsUrl:"https://www.bigbasket.com/offers/",                                            clearUrl:"https://www.bigbasket.com/offers/",                                            mapUrl:"https://www.google.com/maps/search/BigBasket+near+me" },
+        { icon:"🛒", name:"Amazon India",  tip:"Midweek deals are live!",      color:"#FF9900", dealsUrl:"https://www.amazon.in/deals",                                                  clearUrl:"https://www.amazon.in/gp/goldbox",                                             mapUrl:"https://www.google.com/maps/search/Amazon+near+me" },
+        { icon:"🏪", name:"Reliance Fresh",tip:"Fresh grocery offers!",        color:"#0078C8", dealsUrl:"https://www.reliancesmart.in/offers",                                          clearUrl:"https://www.reliancesmart.in/offers",                                          mapUrl:"https://www.google.com/maps/search/Reliance+Fresh+near+me" },
+        { icon:"💻", name:"Croma",         tip:"Electronics midweek deals!",   color:"#E31837", dealsUrl:"https://www.croma.com/offers",                                                 clearUrl:"https://www.croma.com/offers",                                                 mapUrl:"https://www.google.com/maps/search/Croma+near+me" },
+        { icon:"🛍️", name:"Flipkart",     tip:"Wednesday special prices!",    color:"#2874F0", dealsUrl:"https://www.flipkart.com/offers-store",                                        clearUrl:"https://www.flipkart.com/offers-store",                                        mapUrl:"https://www.google.com/maps/search/Flipkart+near+me" },
+        { icon:"💊", name:"1mg",           tip:"Health & wellness deals!",     color:"#E40046", dealsUrl:"https://www.1mg.com/offers",                                                   clearUrl:"https://www.1mg.com/offers",                                                   mapUrl:"https://www.google.com/maps/search/1mg+near+me" },
+      ]},
+      4: { label:"Thursday 🏷️", deals:[
+        { icon:"🛍️", name:"Flipkart",     tip:"Big savings Thursday!",        color:"#2874F0", dealsUrl:"https://www.flipkart.com/offers-store",                                        clearUrl:"https://www.flipkart.com/offers-store",                                        mapUrl:"https://www.google.com/maps/search/Flipkart+near+me" },
+        { icon:"🛒", name:"Amazon India",  tip:"Thursday deals live now!",     color:"#FF9900", dealsUrl:"https://www.amazon.in/deals",                                                  clearUrl:"https://www.amazon.in/gp/goldbox",                                             mapUrl:"https://www.google.com/maps/search/Amazon+near+me" },
+        { icon:"👗", name:"Myntra",        tip:"Fashion clearance today!",     color:"#FF3F6C", dealsUrl:"https://www.myntra.com/sale",                                                  clearUrl:"https://www.myntra.com/sale",                                                  mapUrl:"https://www.google.com/maps/search/Myntra+near+me" },
+        { icon:"🏪", name:"DMart",         tip:"DMart Thursday offers!",       color:"#E31837", dealsUrl:"https://www.dmart.in/deals",                                                   clearUrl:"https://www.dmart.in/deals",                                                   mapUrl:"https://www.google.com/maps/search/DMart+near+me" },
+        { icon:"🍕", name:"Swiggy",        tip:"Food deals & free delivery!",  color:"#FC8019", dealsUrl:"https://www.swiggy.com/offers",                                                clearUrl:"https://www.swiggy.com/offers",                                                mapUrl:"https://www.google.com/maps/search/Swiggy+restaurant+near+me" },
+        { icon:"🏠", name:"IKEA India",    tip:"Home deals this week!",        color:"#0058A3", dealsUrl:"https://www.ikea.com/in/en/offers/",                                           clearUrl:"https://www.ikea.com/in/en/offers/",                                           mapUrl:"https://www.google.com/maps/search/IKEA+India+near+me" },
+      ]},
+      5: { label:"Friday 🎉", deals:[
+        { icon:"🛒", name:"Amazon India",  tip:"Friday big deals!",            color:"#FF9900", dealsUrl:"https://www.amazon.in/deals",                                                  clearUrl:"https://www.amazon.in/gp/goldbox",                                             mapUrl:"https://www.google.com/maps/search/Amazon+near+me" },
+        { icon:"🛍️", name:"Flipkart",     tip:"Weekend sale starts today!",   color:"#2874F0", dealsUrl:"https://www.flipkart.com/offers-store",                                        clearUrl:"https://www.flipkart.com/offers-store",                                        mapUrl:"https://www.google.com/maps/search/Flipkart+near+me" },
+        { icon:"👗", name:"Myntra",        tip:"EORS — End of Reason Sale!",   color:"#FF3F6C", dealsUrl:"https://www.myntra.com/sale",                                                  clearUrl:"https://www.myntra.com/sale",                                                  mapUrl:"https://www.google.com/maps/search/Myntra+near+me" },
+        { icon:"🥬", name:"BigBasket",     tip:"Weekend grocery deals!",       color:"#84C225", dealsUrl:"https://www.bigbasket.com/offers/",                                            clearUrl:"https://www.bigbasket.com/offers/",                                            mapUrl:"https://www.google.com/maps/search/BigBasket+near+me" },
+        { icon:"🍔", name:"Zomato",        tip:"Friday food fiesta deals!",    color:"#E23744", dealsUrl:"https://www.zomato.com/offers",                                                clearUrl:"https://www.zomato.com/offers",                                                mapUrl:"https://www.google.com/maps/search/Zomato+near+me" },
+        { icon:"💻", name:"Croma",         tip:"Weekend electronics deals!",   color:"#E31837", dealsUrl:"https://www.croma.com/offers",                                                 clearUrl:"https://www.croma.com/offers",                                                 mapUrl:"https://www.google.com/maps/search/Croma+near+me" },
+      ]},
+      6: { label:"Saturday 🛒", deals:[
+        { icon:"🛍️", name:"Flipkart",     tip:"Super weekend sale!",          color:"#2874F0", dealsUrl:"https://www.flipkart.com/offers-store",                                        clearUrl:"https://www.flipkart.com/offers-store",                                        mapUrl:"https://www.google.com/maps/search/Flipkart+near+me" },
+        { icon:"🛒", name:"Amazon India",  tip:"Saturday deals are live!",     color:"#FF9900", dealsUrl:"https://www.amazon.in/deals",                                                  clearUrl:"https://www.amazon.in/gp/goldbox",                                             mapUrl:"https://www.google.com/maps/search/Amazon+near+me" },
+        { icon:"🏪", name:"DMart",         tip:"Weekend best prices!",         color:"#E31837", dealsUrl:"https://www.dmart.in/deals",                                                   clearUrl:"https://www.dmart.in/deals",                                                   mapUrl:"https://www.google.com/maps/search/DMart+near+me" },
+        { icon:"🥬", name:"BigBasket",     tip:"Saturday fresh deals!",        color:"#84C225", dealsUrl:"https://www.bigbasket.com/offers/",                                            clearUrl:"https://www.bigbasket.com/offers/",                                            mapUrl:"https://www.google.com/maps/search/BigBasket+near+me" },
+        { icon:"👗", name:"Myntra",        tip:"Weekend fashion sale!",        color:"#FF3F6C", dealsUrl:"https://www.myntra.com/sale",                                                  clearUrl:"https://www.myntra.com/sale",                                                  mapUrl:"https://www.google.com/maps/search/Myntra+near+me" },
+        { icon:"🍕", name:"Swiggy",        tip:"Weekend food discounts!",      color:"#FC8019", dealsUrl:"https://www.swiggy.com/offers",                                                clearUrl:"https://www.swiggy.com/offers",                                                mapUrl:"https://www.google.com/maps/search/Swiggy+near+me" },
+      ]},
+    }
+  },
+
+  // 🇬🇧 UNITED KINGDOM
+  "GB": {
+    flag: "🇬🇧", name: "United Kingdom",
+    days: {
+      0: { label:"Sunday ☀️", deals:[
+        { icon:"🛒", name:"Tesco",         tip:"Sunday specials on now!",      color:"#EE1C25", dealsUrl:"https://www.tesco.com/groceries/en-GB/promotions",                             clearUrl:"https://www.tesco.com/groceries/en-GB/promotions",                             mapUrl:"https://www.google.com/maps/search/Tesco+near+me" },
+        { icon:"🛍️", name:"ASDA",         tip:"Rollback prices today!",       color:"#78A22F", dealsUrl:"https://www.asda.com/offers",                                                  clearUrl:"https://www.asda.com/offers",                                                  mapUrl:"https://www.google.com/maps/search/ASDA+near+me" },
+        { icon:"💊", name:"Boots",         tip:"Health & beauty deals!",       color:"#004B93", dealsUrl:"https://www.boots.com/offers",                                                 clearUrl:"https://www.boots.com/offers",                                                 mapUrl:"https://www.google.com/maps/search/Boots+near+me" },
+        { icon:"🥬", name:"Sainsbury's",   tip:"Nectar points deals!",         color:"#F06C00", dealsUrl:"https://www.sainsburys.co.uk/shop/offers",                                     clearUrl:"https://www.sainsburys.co.uk/shop/offers",                                     mapUrl:"https://www.google.com/maps/search/Sainsburys+near+me" },
+        { icon:"🏪", name:"Marks & Spencer",tip:"Weekend M&S deals!",         color:"#000000", dealsUrl:"https://www.marksandspencer.com/offers",                                       clearUrl:"https://www.marksandspencer.com/offers",                                       mapUrl:"https://www.google.com/maps/search/Marks+Spencer+near+me" },
+        { icon:"💻", name:"Currys",        tip:"Electronics weekend deals!",   color:"#582C83", dealsUrl:"https://www.currys.co.uk/deals",                                               clearUrl:"https://www.currys.co.uk/deals",                                               mapUrl:"https://www.google.com/maps/search/Currys+near+me" },
+      ]},
+      1: { label:"Monday 🌟", deals:[
+        { icon:"🛒", name:"Tesco",         tip:"New weekly deals start!",      color:"#EE1C25", dealsUrl:"https://www.tesco.com/groceries/en-GB/promotions",                             clearUrl:"https://www.tesco.com/groceries/en-GB/promotions",                             mapUrl:"https://www.google.com/maps/search/Tesco+near+me" },
+        { icon:"🛍️", name:"ASDA",         tip:"Monday rollback prices!",      color:"#78A22F", dealsUrl:"https://www.asda.com/offers",                                                  clearUrl:"https://www.asda.com/offers",                                                  mapUrl:"https://www.google.com/maps/search/ASDA+near+me" },
+        { icon:"👗", name:"Next",          tip:"New season deals today!",      color:"#000000", dealsUrl:"https://www.next.co.uk/shop/gender-allandgender-menswomen/department-sale",    clearUrl:"https://www.next.co.uk/shop/gender-allandgender-menswomen/department-sale",    mapUrl:"https://www.google.com/maps/search/Next+near+me" },
+        { icon:"🏪", name:"Argos",         tip:"New deals every Monday!",      color:"#E31837", dealsUrl:"https://www.argos.co.uk/offers",                                               clearUrl:"https://www.argos.co.uk/offers",                                               mapUrl:"https://www.google.com/maps/search/Argos+near+me" },
+        { icon:"💻", name:"Currys",        tip:"Monday electronics deals!",    color:"#582C83", dealsUrl:"https://www.currys.co.uk/deals",                                               clearUrl:"https://www.currys.co.uk/deals",                                               mapUrl:"https://www.google.com/maps/search/Currys+near+me" },
+        { icon:"🥬", name:"Lidl UK",       tip:"New weekly Lidl offers!",      color:"#003087", dealsUrl:"https://www.lidl.co.uk/offers",                                                clearUrl:"https://www.lidl.co.uk/offers",                                                mapUrl:"https://www.google.com/maps/search/Lidl+near+me" },
+      ]},
+      2: { label:"Tuesday 🛍️", deals:[
+        { icon:"🥬", name:"Sainsbury's",   tip:"Tuesday Nectar deals!",        color:"#F06C00", dealsUrl:"https://www.sainsburys.co.uk/shop/offers",                                     clearUrl:"https://www.sainsburys.co.uk/shop/offers",                                     mapUrl:"https://www.google.com/maps/search/Sainsburys+near+me" },
+        { icon:"🛒", name:"Tesco",         tip:"Clubcard deals active!",       color:"#EE1C25", dealsUrl:"https://www.tesco.com/groceries/en-GB/promotions",                             clearUrl:"https://www.tesco.com/groceries/en-GB/promotions",                             mapUrl:"https://www.google.com/maps/search/Tesco+near+me" },
+        { icon:"💊", name:"Boots",         tip:"Health deals this week!",      color:"#004B93", dealsUrl:"https://www.boots.com/offers",                                                 clearUrl:"https://www.boots.com/offers",                                                 mapUrl:"https://www.google.com/maps/search/Boots+near+me" },
+        { icon:"🏪", name:"B&M",           tip:"New B&M deals this week!",     color:"#E31837", dealsUrl:"https://www.bmstores.co.uk/offers",                                            clearUrl:"https://www.bmstores.co.uk/offers",                                            mapUrl:"https://www.google.com/maps/search/BM+Stores+near+me" },
+        { icon:"🛍️", name:"ASDA",         tip:"Rollback prices active!",      color:"#78A22F", dealsUrl:"https://www.asda.com/offers",                                                  clearUrl:"https://www.asda.com/offers",                                                  mapUrl:"https://www.google.com/maps/search/ASDA+near+me" },
+        { icon:"🏠", name:"IKEA UK",       tip:"Home deals this week!",        color:"#003087", dealsUrl:"https://www.ikea.com/gb/en/offers/",                                           clearUrl:"https://www.ikea.com/gb/en/offers/",                                           mapUrl:"https://www.google.com/maps/search/IKEA+UK+near+me" },
+      ]},
+      3: { label:"Wednesday 🥬", deals:[
+        { icon:"🛒", name:"Tesco",         tip:"Midweek Clubcard deals!",      color:"#EE1C25", dealsUrl:"https://www.tesco.com/groceries/en-GB/promotions",                             clearUrl:"https://www.tesco.com/groceries/en-GB/promotions",                             mapUrl:"https://www.google.com/maps/search/Tesco+near+me" },
+        { icon:"🥬", name:"Aldi UK",       tip:"Specialbuys reset today!",     color:"#00438A", dealsUrl:"https://www.aldi.co.uk/offers",                                                clearUrl:"https://www.aldi.co.uk/offers",                                                mapUrl:"https://www.google.com/maps/search/Aldi+near+me" },
+        { icon:"🛍️", name:"ASDA",         tip:"Wednesday price cuts!",        color:"#78A22F", dealsUrl:"https://www.asda.com/offers",                                                  clearUrl:"https://www.asda.com/offers",                                                  mapUrl:"https://www.google.com/maps/search/ASDA+near+me" },
+        { icon:"💻", name:"Currys",        tip:"Midweek tech deals!",          color:"#582C83", dealsUrl:"https://www.currys.co.uk/deals",                                               clearUrl:"https://www.currys.co.uk/deals",                                               mapUrl:"https://www.google.com/maps/search/Currys+near+me" },
+        { icon:"🏪", name:"Argos",         tip:"Midweek Argos offers!",        color:"#E31837", dealsUrl:"https://www.argos.co.uk/offers",                                               clearUrl:"https://www.argos.co.uk/offers",                                               mapUrl:"https://www.google.com/maps/search/Argos+near+me" },
+        { icon:"💊", name:"Boots",         tip:"3 for 2 deals active!",        color:"#004B93", dealsUrl:"https://www.boots.com/offers",                                                 clearUrl:"https://www.boots.com/offers",                                                 mapUrl:"https://www.google.com/maps/search/Boots+near+me" },
+      ]},
+      4: { label:"Thursday 🏷️", deals:[
+        { icon:"🥬", name:"Morrisons",     tip:"Thursday fresh deals!",        color:"#FFD700", dealsUrl:"https://www.morrisons.com/offers",                                             clearUrl:"https://www.morrisons.com/offers",                                             mapUrl:"https://www.google.com/maps/search/Morrisons+near+me" },
+        { icon:"🛒", name:"Tesco",         tip:"Thursday price drops!",        color:"#EE1C25", dealsUrl:"https://www.tesco.com/groceries/en-GB/promotions",                             clearUrl:"https://www.tesco.com/groceries/en-GB/promotions",                             mapUrl:"https://www.google.com/maps/search/Tesco+near+me" },
+        { icon:"👗", name:"Primark",       tip:"New styles in store!",         color:"#3A3A3A", dealsUrl:"https://www.primark.com/en-gb/a/new-in",                                       clearUrl:"https://www.primark.com/en-gb/a/new-in",                                       mapUrl:"https://www.google.com/maps/search/Primark+near+me" },
+        { icon:"🛍️", name:"ASDA",         tip:"Thursday rollback prices!",    color:"#78A22F", dealsUrl:"https://www.asda.com/offers",                                                  clearUrl:"https://www.asda.com/offers",                                                  mapUrl:"https://www.google.com/maps/search/ASDA+near+me" },
+        { icon:"💊", name:"Boots",         tip:"Thursday health deals!",       color:"#004B93", dealsUrl:"https://www.boots.com/offers",                                                 clearUrl:"https://www.boots.com/offers",                                                 mapUrl:"https://www.google.com/maps/search/Boots+near+me" },
+        { icon:"🏪", name:"B&M",           tip:"End of week B&M deals!",       color:"#E31837", dealsUrl:"https://www.bmstores.co.uk/offers",                                            clearUrl:"https://www.bmstores.co.uk/offers",                                            mapUrl:"https://www.google.com/maps/search/BM+Stores+near+me" },
+      ]},
+      5: { label:"Friday 🎉", deals:[
+        { icon:"🛒", name:"Tesco",         tip:"Friday Clubcard prices!",      color:"#EE1C25", dealsUrl:"https://www.tesco.com/groceries/en-GB/promotions",                             clearUrl:"https://www.tesco.com/groceries/en-GB/promotions",                             mapUrl:"https://www.google.com/maps/search/Tesco+near+me" },
+        { icon:"💻", name:"Currys",        tip:"Friday tech deals live!",      color:"#582C83", dealsUrl:"https://www.currys.co.uk/deals",                                               clearUrl:"https://www.currys.co.uk/deals",                                               mapUrl:"https://www.google.com/maps/search/Currys+near+me" },
+        { icon:"🛍️", name:"ASDA",         tip:"Friday big savings!",          color:"#78A22F", dealsUrl:"https://www.asda.com/offers",                                                  clearUrl:"https://www.asda.com/offers",                                                  mapUrl:"https://www.google.com/maps/search/ASDA+near+me" },
+        { icon:"🥬", name:"Sainsbury's",   tip:"Weekend food deals!",          color:"#F06C00", dealsUrl:"https://www.sainsburys.co.uk/shop/offers",                                     clearUrl:"https://www.sainsburys.co.uk/shop/offers",                                     mapUrl:"https://www.google.com/maps/search/Sainsburys+near+me" },
+        { icon:"👗", name:"Next",          tip:"Friday fashion sale!",         color:"#000000", dealsUrl:"https://www.next.co.uk/shop/gender-allandgender-menswomen/department-sale",    clearUrl:"https://www.next.co.uk/shop/gender-allandgender-menswomen/department-sale",    mapUrl:"https://www.google.com/maps/search/Next+near+me" },
+        { icon:"🏪", name:"Argos",         tip:"Friday Argos deals!",          color:"#E31837", dealsUrl:"https://www.argos.co.uk/offers",                                               clearUrl:"https://www.argos.co.uk/offers",                                               mapUrl:"https://www.google.com/maps/search/Argos+near+me" },
+      ]},
+      6: { label:"Saturday 🛒", deals:[
+        { icon:"🛒", name:"Tesco",         tip:"Saturday Clubcard deals!",     color:"#EE1C25", dealsUrl:"https://www.tesco.com/groceries/en-GB/promotions",                             clearUrl:"https://www.tesco.com/groceries/en-GB/promotions",                             mapUrl:"https://www.google.com/maps/search/Tesco+near+me" },
+        { icon:"🥬", name:"Aldi UK",       tip:"Saturday Specialbuys!",        color:"#00438A", dealsUrl:"https://www.aldi.co.uk/offers",                                                clearUrl:"https://www.aldi.co.uk/offers",                                                mapUrl:"https://www.google.com/maps/search/Aldi+near+me" },
+        { icon:"💊", name:"Boots",         tip:"Weekend health deals!",        color:"#004B93", dealsUrl:"https://www.boots.com/offers",                                                 clearUrl:"https://www.boots.com/offers",                                                 mapUrl:"https://www.google.com/maps/search/Boots+near+me" },
+        { icon:"🛍️", name:"ASDA",         tip:"Saturday rollback deals!",     color:"#78A22F", dealsUrl:"https://www.asda.com/offers",                                                  clearUrl:"https://www.asda.com/offers",                                                  mapUrl:"https://www.google.com/maps/search/ASDA+near+me" },
+        { icon:"👗", name:"Primark",       tip:"Saturday fashion deals!",      color:"#3A3A3A", dealsUrl:"https://www.primark.com/en-gb/a/new-in",                                       clearUrl:"https://www.primark.com/en-gb/a/new-in",                                       mapUrl:"https://www.google.com/maps/search/Primark+near+me" },
+        { icon:"🏠", name:"IKEA UK",       tip:"Weekend home deals!",          color:"#003087", dealsUrl:"https://www.ikea.com/gb/en/offers/",                                           clearUrl:"https://www.ikea.com/gb/en/offers/",                                           mapUrl:"https://www.google.com/maps/search/IKEA+UK+near+me" },
+      ]},
+    }
+  },
+
+  // 🇦🇺 AUSTRALIA
+  "AU": {
+    flag: "🇦🇺", name: "Australia",
+    days: {
+      0: { label:"Sunday ☀️", deals:[
+        { icon:"🛒", name:"Woolworths",    tip:"Sunday specials today!",       color:"#00A650", dealsUrl:"https://www.woolworths.com.au/shop/discover/specials",                          clearUrl:"https://www.woolworths.com.au/shop/discover/specials",                         mapUrl:"https://www.google.com/maps/search/Woolworths+near+me" },
+        { icon:"🥬", name:"Coles",         tip:"Down Down prices today!",      color:"#E31837", dealsUrl:"https://www.coles.com.au/on-special",                                          clearUrl:"https://www.coles.com.au/on-special",                                          mapUrl:"https://www.google.com/maps/search/Coles+near+me" },
+        { icon:"🏪", name:"Kmart",         tip:"Weekend Kmart deals!",         color:"#E31837", dealsUrl:"https://www.kmart.com.au/specials",                                             clearUrl:"https://www.kmart.com.au/specials",                                             mapUrl:"https://www.google.com/maps/search/Kmart+Australia+near+me" },
+        { icon:"💊", name:"Chemist Warehouse",tip:"Health deals today!",       color:"#0066CC", dealsUrl:"https://www.chemistwarehouse.com.au/catalogue",                                clearUrl:"https://www.chemistwarehouse.com.au/catalogue",                                 mapUrl:"https://www.google.com/maps/search/Chemist+Warehouse+near+me" },
+        { icon:"🏠", name:"Bunnings",      tip:"Weekend hardware deals!",      color:"#00A550", dealsUrl:"https://www.bunnings.com.au/specials",                                          clearUrl:"https://www.bunnings.com.au/specials",                                          mapUrl:"https://www.google.com/maps/search/Bunnings+near+me" },
+        { icon:"💻", name:"JB Hi-Fi",      tip:"Weekend tech deals!",          color:"#FFD700", dealsUrl:"https://www.jbhifi.com.au/pages/sale",                                          clearUrl:"https://www.jbhifi.com.au/pages/sale",                                          mapUrl:"https://www.google.com/maps/search/JB+HiFi+near+me" },
+      ]},
+      1: { label:"Monday 🌟", deals:[
+        { icon:"🛒", name:"Woolworths",    tip:"New weekly specials today!",   color:"#00A650", dealsUrl:"https://www.woolworths.com.au/shop/discover/specials",                          clearUrl:"https://www.woolworths.com.au/shop/discover/specials",                         mapUrl:"https://www.google.com/maps/search/Woolworths+near+me" },
+        { icon:"🥬", name:"Coles",         tip:"New week Down Down prices!",   color:"#E31837", dealsUrl:"https://www.coles.com.au/on-special",                                          clearUrl:"https://www.coles.com.au/on-special",                                          mapUrl:"https://www.google.com/maps/search/Coles+near+me" },
+        { icon:"💻", name:"JB Hi-Fi",      tip:"Monday tech deals!",           color:"#FFD700", dealsUrl:"https://www.jbhifi.com.au/pages/sale",                                          clearUrl:"https://www.jbhifi.com.au/pages/sale",                                          mapUrl:"https://www.google.com/maps/search/JB+HiFi+near+me" },
+        { icon:"🏪", name:"Big W",         tip:"Monday Big W specials!",       color:"#E31837", dealsUrl:"https://www.bigw.com.au/specials",                                              clearUrl:"https://www.bigw.com.au/specials",                                              mapUrl:"https://www.google.com/maps/search/Big+W+near+me" },
+        { icon:"💊", name:"Chemist Warehouse",tip:"Monday health deals!",      color:"#0066CC", dealsUrl:"https://www.chemistwarehouse.com.au/catalogue",                                clearUrl:"https://www.chemistwarehouse.com.au/catalogue",                                 mapUrl:"https://www.google.com/maps/search/Chemist+Warehouse+near+me" },
+        { icon:"🏠", name:"Bunnings",      tip:"New weekly hardware deals!",   color:"#00A550", dealsUrl:"https://www.bunnings.com.au/specials",                                          clearUrl:"https://www.bunnings.com.au/specials",                                          mapUrl:"https://www.google.com/maps/search/Bunnings+near+me" },
+      ]},
+      2: { label:"Tuesday 🛍️", deals:[
+        { icon:"🥬", name:"Coles",         tip:"Tuesday Down Down deals!",     color:"#E31837", dealsUrl:"https://www.coles.com.au/on-special",                                          clearUrl:"https://www.coles.com.au/on-special",                                          mapUrl:"https://www.google.com/maps/search/Coles+near+me" },
+        { icon:"🛒", name:"Woolworths",    tip:"Tuesday specials active!",     color:"#00A650", dealsUrl:"https://www.woolworths.com.au/shop/discover/specials",                          clearUrl:"https://www.woolworths.com.au/shop/discover/specials",                         mapUrl:"https://www.google.com/maps/search/Woolworths+near+me" },
+        { icon:"🏪", name:"Kmart",         tip:"Tuesday Kmart deals!",         color:"#E31837", dealsUrl:"https://www.kmart.com.au/specials",                                             clearUrl:"https://www.kmart.com.au/specials",                                             mapUrl:"https://www.google.com/maps/search/Kmart+near+me" },
+        { icon:"🏠", name:"Bunnings",      tip:"Hardware specials today!",     color:"#00A550", dealsUrl:"https://www.bunnings.com.au/specials",                                          clearUrl:"https://www.bunnings.com.au/specials",                                          mapUrl:"https://www.google.com/maps/search/Bunnings+near+me" },
+        { icon:"💊", name:"Chemist Warehouse",tip:"Health deals active!",      color:"#0066CC", dealsUrl:"https://www.chemistwarehouse.com.au/catalogue",                                clearUrl:"https://www.chemistwarehouse.com.au/catalogue",                                 mapUrl:"https://www.google.com/maps/search/Chemist+Warehouse+near+me" },
+        { icon:"💻", name:"JB Hi-Fi",      tip:"Tuesday tech specials!",       color:"#FFD700", dealsUrl:"https://www.jbhifi.com.au/pages/sale",                                          clearUrl:"https://www.jbhifi.com.au/pages/sale",                                          mapUrl:"https://www.google.com/maps/search/JB+HiFi+near+me" },
+      ]},
+      3: { label:"Wednesday 🥬", deals:[
+        { icon:"🛒", name:"Woolworths",    tip:"Midweek fresh specials!",      color:"#00A650", dealsUrl:"https://www.woolworths.com.au/shop/discover/specials",                          clearUrl:"https://www.woolworths.com.au/shop/discover/specials",                         mapUrl:"https://www.google.com/maps/search/Woolworths+near+me" },
+        { icon:"🥬", name:"Coles",         tip:"Wednesday Down Down prices!",  color:"#E31837", dealsUrl:"https://www.coles.com.au/on-special",                                          clearUrl:"https://www.coles.com.au/on-special",                                          mapUrl:"https://www.google.com/maps/search/Coles+near+me" },
+        { icon:"🥬", name:"Aldi AU",       tip:"Wednesday Specialbuys!",       color:"#00438A", dealsUrl:"https://www.aldi.com.au/en/specials/",                                          clearUrl:"https://www.aldi.com.au/en/specials/",                                          mapUrl:"https://www.google.com/maps/search/Aldi+near+me" },
+        { icon:"🏪", name:"Big W",         tip:"Midweek Big W specials!",      color:"#E31837", dealsUrl:"https://www.bigw.com.au/specials",                                              clearUrl:"https://www.bigw.com.au/specials",                                              mapUrl:"https://www.google.com/maps/search/Big+W+near+me" },
+        { icon:"💻", name:"JB Hi-Fi",      tip:"Midweek tech deals!",          color:"#FFD700", dealsUrl:"https://www.jbhifi.com.au/pages/sale",                                          clearUrl:"https://www.jbhifi.com.au/pages/sale",                                          mapUrl:"https://www.google.com/maps/search/JB+HiFi+near+me" },
+        { icon:"🏠", name:"Bunnings",      tip:"Wednesday hardware specials!", color:"#00A550",  dealsUrl:"https://www.bunnings.com.au/specials",                                         clearUrl:"https://www.bunnings.com.au/specials",                                          mapUrl:"https://www.google.com/maps/search/Bunnings+near+me" },
+      ]},
+      4: { label:"Thursday 🏷️", deals:[
+        { icon:"🥬", name:"Coles",         tip:"Thursday Down Down deals!",    color:"#E31837", dealsUrl:"https://www.coles.com.au/on-special",                                          clearUrl:"https://www.coles.com.au/on-special",                                          mapUrl:"https://www.google.com/maps/search/Coles+near+me" },
+        { icon:"🛒", name:"Woolworths",    tip:"Thursday fresh specials!",     color:"#00A650", dealsUrl:"https://www.woolworths.com.au/shop/discover/specials",                          clearUrl:"https://www.woolworths.com.au/shop/discover/specials",                         mapUrl:"https://www.google.com/maps/search/Woolworths+near+me" },
+        { icon:"💊", name:"Chemist Warehouse",tip:"Thursday health deals!",    color:"#0066CC",  dealsUrl:"https://www.chemistwarehouse.com.au/catalogue",                                clearUrl:"https://www.chemistwarehouse.com.au/catalogue",                                 mapUrl:"https://www.google.com/maps/search/Chemist+Warehouse+near+me" },
+        { icon:"🏪", name:"Kmart",         tip:"Thursday Kmart specials!",     color:"#E31837", dealsUrl:"https://www.kmart.com.au/specials",                                             clearUrl:"https://www.kmart.com.au/specials",                                             mapUrl:"https://www.google.com/maps/search/Kmart+near+me" },
+        { icon:"🏠", name:"Bunnings",      tip:"Pre-weekend hardware deals!",  color:"#00A550", dealsUrl:"https://www.bunnings.com.au/specials",                                          clearUrl:"https://www.bunnings.com.au/specials",                                          mapUrl:"https://www.google.com/maps/search/Bunnings+near+me" },
+        { icon:"💻", name:"JB Hi-Fi",      tip:"Pre-weekend tech deals!",      color:"#FFD700", dealsUrl:"https://www.jbhifi.com.au/pages/sale",                                          clearUrl:"https://www.jbhifi.com.au/pages/sale",                                          mapUrl:"https://www.google.com/maps/search/JB+HiFi+near+me" },
+      ]},
+      5: { label:"Friday 🎉", deals:[
+        { icon:"🛒", name:"Woolworths",    tip:"Friday fresh specials!",       color:"#00A650", dealsUrl:"https://www.woolworths.com.au/shop/discover/specials",                          clearUrl:"https://www.woolworths.com.au/shop/discover/specials",                         mapUrl:"https://www.google.com/maps/search/Woolworths+near+me" },
+        { icon:"🥬", name:"Coles",         tip:"Friday Down Down prices!",     color:"#E31837", dealsUrl:"https://www.coles.com.au/on-special",                                          clearUrl:"https://www.coles.com.au/on-special",                                          mapUrl:"https://www.google.com/maps/search/Coles+near+me" },
+        { icon:"💻", name:"JB Hi-Fi",      tip:"Friday tech deals!",           color:"#FFD700", dealsUrl:"https://www.jbhifi.com.au/pages/sale",                                          clearUrl:"https://www.jbhifi.com.au/pages/sale",                                          mapUrl:"https://www.google.com/maps/search/JB+HiFi+near+me" },
+        { icon:"🏪", name:"Big W",         tip:"Friday Big W specials!",       color:"#E31837", dealsUrl:"https://www.bigw.com.au/specials",                                              clearUrl:"https://www.bigw.com.au/specials",                                              mapUrl:"https://www.google.com/maps/search/Big+W+near+me" },
+        { icon:"🏠", name:"Bunnings",      tip:"Friday hardware specials!",    color:"#00A550", dealsUrl:"https://www.bunnings.com.au/specials",                                          clearUrl:"https://www.bunnings.com.au/specials",                                          mapUrl:"https://www.google.com/maps/search/Bunnings+near+me" },
+        { icon:"💊", name:"Chemist Warehouse",tip:"Friday health deals!",      color:"#0066CC",  dealsUrl:"https://www.chemistwarehouse.com.au/catalogue",                                clearUrl:"https://www.chemistwarehouse.com.au/catalogue",                                 mapUrl:"https://www.google.com/maps/search/Chemist+Warehouse+near+me" },
+      ]},
+      6: { label:"Saturday 🛒", deals:[
+        { icon:"🛒", name:"Woolworths",    tip:"Saturday specials today!",     color:"#00A650", dealsUrl:"https://www.woolworths.com.au/shop/discover/specials",                          clearUrl:"https://www.woolworths.com.au/shop/discover/specials",                         mapUrl:"https://www.google.com/maps/search/Woolworths+near+me" },
+        { icon:"🥬", name:"Coles",         tip:"Saturday Down Down prices!",   color:"#E31837", dealsUrl:"https://www.coles.com.au/on-special",                                          clearUrl:"https://www.coles.com.au/on-special",                                          mapUrl:"https://www.google.com/maps/search/Coles+near+me" },
+        { icon:"🏪", name:"Kmart",         tip:"Saturday Kmart specials!",     color:"#E31837", dealsUrl:"https://www.kmart.com.au/specials",                                             clearUrl:"https://www.kmart.com.au/specials",                                             mapUrl:"https://www.google.com/maps/search/Kmart+near+me" },
+        { icon:"🥬", name:"Aldi AU",       tip:"Saturday Specialbuys!",        color:"#00438A", dealsUrl:"https://www.aldi.com.au/en/specials/",                                          clearUrl:"https://www.aldi.com.au/en/specials/",                                          mapUrl:"https://www.google.com/maps/search/Aldi+near+me" },
+        { icon:"🏠", name:"Bunnings",      tip:"Weekend hardware deals!",      color:"#00A550", dealsUrl:"https://www.bunnings.com.au/specials",                                          clearUrl:"https://www.bunnings.com.au/specials",                                          mapUrl:"https://www.google.com/maps/search/Bunnings+near+me" },
+        { icon:"💻", name:"JB Hi-Fi",      tip:"Saturday tech specials!",      color:"#FFD700", dealsUrl:"https://www.jbhifi.com.au/pages/sale",                                          clearUrl:"https://www.jbhifi.com.au/pages/sale",                                          mapUrl:"https://www.google.com/maps/search/JB+HiFi+near+me" },
+      ]},
+    }
+  },
+
+  // 🇨🇦 CANADA
+  "CA": {
+    flag: "🇨🇦", name: "Canada",
+    days: {
+      0: { label:"Sunday ☀️", deals:[
+        { icon:"🛒", name:"Walmart Canada", tip:"Sunday rollback deals!",      color:"#0071CE", dealsUrl:"https://www.walmart.ca/en/rollback",                                            clearUrl:"https://www.walmart.ca/en/rollback",                                           mapUrl:"https://www.google.com/maps/search/Walmart+Canada+near+me" },
+        { icon:"🥬", name:"Loblaws",        tip:"PC Optimum deals today!",     color:"#E31837", dealsUrl:"https://www.loblaws.ca/en/flyer",                                              clearUrl:"https://www.loblaws.ca/en/flyer",                                              mapUrl:"https://www.google.com/maps/search/Loblaws+near+me" },
+        { icon:"💊", name:"Shoppers Drug Mart",tip:"Sunday health deals!",     color:"#E31837", dealsUrl:"https://www.shoppersdrugmart.ca/en/flyers",                                     clearUrl:"https://www.shoppersdrugmart.ca/en/flyers",                                     mapUrl:"https://www.google.com/maps/search/Shoppers+Drug+Mart+near+me" },
+        { icon:"🏠", name:"Canadian Tire",  tip:"Weekend home deals!",         color:"#E31837", dealsUrl:"https://www.canadiantire.ca/en/flyer.html",                                    clearUrl:"https://www.canadiantire.ca/en/flyer.html",                                    mapUrl:"https://www.google.com/maps/search/Canadian+Tire+near+me" },
+        { icon:"🛍️", name:"Hudson's Bay",  tip:"Weekend fashion deals!",      color:"#8B0000", dealsUrl:"https://www.thebay.com/en-ca/sale",                                            clearUrl:"https://www.thebay.com/en-ca/sale",                                            mapUrl:"https://www.google.com/maps/search/Hudsons+Bay+near+me" },
+        { icon:"💻", name:"Best Buy Canada",tip:"Weekend tech deals!",         color:"#003087", dealsUrl:"https://www.bestbuy.ca/en-ca/collection/deals",                                clearUrl:"https://www.bestbuy.ca/en-ca/collection/deals",                                mapUrl:"https://www.google.com/maps/search/Best+Buy+Canada+near+me" },
+      ]},
+      1: { label:"Monday 🌟", deals:[
+        { icon:"🛒", name:"Walmart Canada", tip:"New weekly rollback prices!", color:"#0071CE", dealsUrl:"https://www.walmart.ca/en/rollback",                                            clearUrl:"https://www.walmart.ca/en/rollback",                                           mapUrl:"https://www.google.com/maps/search/Walmart+Canada+near+me" },
+        { icon:"🥬", name:"No Frills",      tip:"Monday flyer deals!",         color:"#FFD700", dealsUrl:"https://www.nofrills.ca/en/flyer",                                              clearUrl:"https://www.nofrills.ca/en/flyer",                                              mapUrl:"https://www.google.com/maps/search/No+Frills+near+me" },
+        { icon:"💊", name:"Shoppers Drug Mart",tip:"Monday beauty deals!",     color:"#E31837", dealsUrl:"https://www.shoppersdrugmart.ca/en/flyers",                                     clearUrl:"https://www.shoppersdrugmart.ca/en/flyers",                                     mapUrl:"https://www.google.com/maps/search/Shoppers+Drug+Mart+near+me" },
+        { icon:"🏠", name:"Canadian Tire",  tip:"Monday hardware deals!",      color:"#E31837", dealsUrl:"https://www.canadiantire.ca/en/flyer.html",                                    clearUrl:"https://www.canadiantire.ca/en/flyer.html",                                    mapUrl:"https://www.google.com/maps/search/Canadian+Tire+near+me" },
+        { icon:"💻", name:"Best Buy Canada",tip:"Monday tech deals!",          color:"#003087", dealsUrl:"https://www.bestbuy.ca/en-ca/collection/deals",                                clearUrl:"https://www.bestbuy.ca/en-ca/collection/deals",                                mapUrl:"https://www.google.com/maps/search/Best+Buy+Canada+near+me" },
+        { icon:"🥬", name:"Loblaws",        tip:"PC Optimum Monday deals!",    color:"#E31837", dealsUrl:"https://www.loblaws.ca/en/flyer",                                              clearUrl:"https://www.loblaws.ca/en/flyer",                                              mapUrl:"https://www.google.com/maps/search/Loblaws+near+me" },
+      ]},
+      2: { label:"Tuesday 🛍️", deals:[
+        { icon:"🥬", name:"Loblaws",        tip:"Tuesday flyer specials!",     color:"#E31837", dealsUrl:"https://www.loblaws.ca/en/flyer",                                              clearUrl:"https://www.loblaws.ca/en/flyer",                                              mapUrl:"https://www.google.com/maps/search/Loblaws+near+me" },
+        { icon:"🛒", name:"Walmart Canada", tip:"Tuesday rollback prices!",    color:"#0071CE", dealsUrl:"https://www.walmart.ca/en/rollback",                                            clearUrl:"https://www.walmart.ca/en/rollback",                                           mapUrl:"https://www.google.com/maps/search/Walmart+Canada+near+me" },
+        { icon:"🏠", name:"Canadian Tire",  tip:"Tuesday flyer deals!",        color:"#E31837", dealsUrl:"https://www.canadiantire.ca/en/flyer.html",                                    clearUrl:"https://www.canadiantire.ca/en/flyer.html",                                    mapUrl:"https://www.google.com/maps/search/Canadian+Tire+near+me" },
+        { icon:"💊", name:"Shoppers Drug Mart",tip:"Tuesday health deals!",    color:"#E31837", dealsUrl:"https://www.shoppersdrugmart.ca/en/flyers",                                     clearUrl:"https://www.shoppersdrugmart.ca/en/flyers",                                     mapUrl:"https://www.google.com/maps/search/Shoppers+Drug+Mart+near+me" },
+        { icon:"💻", name:"Best Buy Canada",tip:"Tuesday tech specials!",      color:"#003087", dealsUrl:"https://www.bestbuy.ca/en-ca/collection/deals",                                clearUrl:"https://www.bestbuy.ca/en-ca/collection/deals",                                mapUrl:"https://www.google.com/maps/search/Best+Buy+Canada+near+me" },
+        { icon:"🛍️", name:"Hudson's Bay",  tip:"Tuesday fashion sale!",       color:"#8B0000", dealsUrl:"https://www.thebay.com/en-ca/sale",                                            clearUrl:"https://www.thebay.com/en-ca/sale",                                            mapUrl:"https://www.google.com/maps/search/Hudsons+Bay+near+me" },
+      ]},
+      3: { label:"Wednesday 🥬", deals:[
+        { icon:"🛒", name:"Walmart Canada", tip:"Midweek rollback prices!",    color:"#0071CE", dealsUrl:"https://www.walmart.ca/en/rollback",                                            clearUrl:"https://www.walmart.ca/en/rollback",                                           mapUrl:"https://www.google.com/maps/search/Walmart+Canada+near+me" },
+        { icon:"🥬", name:"No Frills",      tip:"Wednesday grocery deals!",    color:"#FFD700", dealsUrl:"https://www.nofrills.ca/en/flyer",                                              clearUrl:"https://www.nofrills.ca/en/flyer",                                              mapUrl:"https://www.google.com/maps/search/No+Frills+near+me" },
+        { icon:"🥬", name:"Loblaws",        tip:"Midweek PC Optimum deals!",   color:"#E31837", dealsUrl:"https://www.loblaws.ca/en/flyer",                                              clearUrl:"https://www.loblaws.ca/en/flyer",                                              mapUrl:"https://www.google.com/maps/search/Loblaws+near+me" },
+        { icon:"💊", name:"Shoppers Drug Mart",tip:"Wednesday beauty deals!",  color:"#E31837", dealsUrl:"https://www.shoppersdrugmart.ca/en/flyers",                                     clearUrl:"https://www.shoppersdrugmart.ca/en/flyers",                                     mapUrl:"https://www.google.com/maps/search/Shoppers+Drug+Mart+near+me" },
+        { icon:"🏠", name:"Canadian Tire",  tip:"Midweek hardware specials!",  color:"#E31837", dealsUrl:"https://www.canadiantire.ca/en/flyer.html",                                    clearUrl:"https://www.canadiantire.ca/en/flyer.html",                                    mapUrl:"https://www.google.com/maps/search/Canadian+Tire+near+me" },
+        { icon:"💻", name:"Best Buy Canada",tip:"Midweek tech deals!",         color:"#003087", dealsUrl:"https://www.bestbuy.ca/en-ca/collection/deals",                                clearUrl:"https://www.bestbuy.ca/en-ca/collection/deals",                                mapUrl:"https://www.google.com/maps/search/Best+Buy+Canada+near+me" },
+      ]},
+      4: { label:"Thursday 🏷️", deals:[
+        { icon:"💊", name:"Shoppers Drug Mart",tip:"Thursday Optimum points!", color:"#E31837", dealsUrl:"https://www.shoppersdrugmart.ca/en/flyers",                                     clearUrl:"https://www.shoppersdrugmart.ca/en/flyers",                                     mapUrl:"https://www.google.com/maps/search/Shoppers+Drug+Mart+near+me" },
+        { icon:"🛒", name:"Walmart Canada", tip:"Thursday rollback deals!",    color:"#0071CE", dealsUrl:"https://www.walmart.ca/en/rollback",                                            clearUrl:"https://www.walmart.ca/en/rollback",                                           mapUrl:"https://www.google.com/maps/search/Walmart+Canada+near+me" },
+        { icon:"🥬", name:"Loblaws",        tip:"Thursday PC Optimum deals!",  color:"#E31837", dealsUrl:"https://www.loblaws.ca/en/flyer",                                              clearUrl:"https://www.loblaws.ca/en/flyer",                                              mapUrl:"https://www.google.com/maps/search/Loblaws+near+me" },
+        { icon:"🏠", name:"Canadian Tire",  tip:"Pre-weekend hardware deals!", color:"#E31837", dealsUrl:"https://www.canadiantire.ca/en/flyer.html",                                    clearUrl:"https://www.canadiantire.ca/en/flyer.html",                                    mapUrl:"https://www.google.com/maps/search/Canadian+Tire+near+me" },
+        { icon:"💻", name:"Best Buy Canada",tip:"Pre-weekend tech deals!",     color:"#003087", dealsUrl:"https://www.bestbuy.ca/en-ca/collection/deals",                                clearUrl:"https://www.bestbuy.ca/en-ca/collection/deals",                                mapUrl:"https://www.google.com/maps/search/Best+Buy+Canada+near+me" },
+        { icon:"🛍️", name:"Hudson's Bay",  tip:"Thursday fashion deals!",     color:"#8B0000", dealsUrl:"https://www.thebay.com/en-ca/sale",                                            clearUrl:"https://www.thebay.com/en-ca/sale",                                            mapUrl:"https://www.google.com/maps/search/Hudsons+Bay+near+me" },
+      ]},
+      5: { label:"Friday 🎉", deals:[
+        { icon:"🛒", name:"Walmart Canada", tip:"Friday rollback prices!",     color:"#0071CE", dealsUrl:"https://www.walmart.ca/en/rollback",                                            clearUrl:"https://www.walmart.ca/en/rollback",                                           mapUrl:"https://www.google.com/maps/search/Walmart+Canada+near+me" },
+        { icon:"💊", name:"Shoppers Drug Mart",tip:"Friday beauty deals!",     color:"#E31837", dealsUrl:"https://www.shoppersdrugmart.ca/en/flyers",                                     clearUrl:"https://www.shoppersdrugmart.ca/en/flyers",                                     mapUrl:"https://www.google.com/maps/search/Shoppers+Drug+Mart+near+me" },
+        { icon:"🥬", name:"No Frills",      tip:"Friday grocery deals!",       color:"#FFD700", dealsUrl:"https://www.nofrills.ca/en/flyer",                                              clearUrl:"https://www.nofrills.ca/en/flyer",                                              mapUrl:"https://www.google.com/maps/search/No+Frills+near+me" },
+        { icon:"💻", name:"Best Buy Canada",tip:"Friday tech deals live!",     color:"#003087", dealsUrl:"https://www.bestbuy.ca/en-ca/collection/deals",                                clearUrl:"https://www.bestbuy.ca/en-ca/collection/deals",                                mapUrl:"https://www.google.com/maps/search/Best+Buy+Canada+near+me" },
+        { icon:"🏠", name:"Canadian Tire",  tip:"Friday hardware specials!",   color:"#E31837", dealsUrl:"https://www.canadiantire.ca/en/flyer.html",                                    clearUrl:"https://www.canadiantire.ca/en/flyer.html",                                    mapUrl:"https://www.google.com/maps/search/Canadian+Tire+near+me" },
+        { icon:"🛍️", name:"Hudson's Bay",  tip:"Friday fashion clearance!",   color:"#8B0000", dealsUrl:"https://www.thebay.com/en-ca/sale",                                            clearUrl:"https://www.thebay.com/en-ca/sale",                                            mapUrl:"https://www.google.com/maps/search/Hudsons+Bay+near+me" },
+      ]},
+      6: { label:"Saturday 🛒", deals:[
+        { icon:"🛒", name:"Walmart Canada", tip:"Saturday rollback deals!",    color:"#0071CE", dealsUrl:"https://www.walmart.ca/en/rollback",                                            clearUrl:"https://www.walmart.ca/en/rollback",                                           mapUrl:"https://www.google.com/maps/search/Walmart+Canada+near+me" },
+        { icon:"🥬", name:"Loblaws",        tip:"Saturday PC Optimum deals!",  color:"#E31837", dealsUrl:"https://www.loblaws.ca/en/flyer",                                              clearUrl:"https://www.loblaws.ca/en/flyer",                                              mapUrl:"https://www.google.com/maps/search/Loblaws+near+me" },
+        { icon:"💊", name:"Shoppers Drug Mart",tip:"Saturday beauty deals!",   color:"#E31837", dealsUrl:"https://www.shoppersdrugmart.ca/en/flyers",                                     clearUrl:"https://www.shoppersdrugmart.ca/en/flyers",                                     mapUrl:"https://www.google.com/maps/search/Shoppers+Drug+Mart+near+me" },
+        { icon:"🏠", name:"Canadian Tire",  tip:"Weekend hardware specials!",  color:"#E31837", dealsUrl:"https://www.canadiantire.ca/en/flyer.html",                                    clearUrl:"https://www.canadiantire.ca/en/flyer.html",                                    mapUrl:"https://www.google.com/maps/search/Canadian+Tire+near+me" },
+        { icon:"💻", name:"Best Buy Canada",tip:"Weekend tech deals!",         color:"#003087", dealsUrl:"https://www.bestbuy.ca/en-ca/collection/deals",                                clearUrl:"https://www.bestbuy.ca/en-ca/collection/deals",                                mapUrl:"https://www.google.com/maps/search/Best+Buy+Canada+near+me" },
+        { icon:"🥬", name:"No Frills",      tip:"Saturday grocery deals!",     color:"#FFD700", dealsUrl:"https://www.nofrills.ca/en/flyer",                                              clearUrl:"https://www.nofrills.ca/en/flyer",                                              mapUrl:"https://www.google.com/maps/search/No+Frills+near+me" },
+      ]},
+    }
+  },
 };
 
-function renderTodaysDeals() {
-  const data = DAILY_DEALS[new Date().getDay()];
+// Default global deals for unknown countries
+function getGlobalDeals(flag, countryName) {
+  const day = new Date().getDay();
+  const days = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+  const emojis = ["☀️","🌟","🛍️","🥬","🏷️","🎉","🛒"];
+  return {
+    label: `${days[day]} ${emojis[day]}`,
+    deals: [
+      { icon:"🛒", name:"Amazon",         tip:"Shop deals online!",           color:"#FF9900", dealsUrl:"https://www.amazon.com/deals",                                                   clearUrl:"https://www.amazon.com/deals",                                                  mapUrl:`https://www.google.com/maps/search/Amazon+near+me` },
+      { icon:"🛍️", name:"eBay",           tip:"Find local deals!",            color:"#E53238", dealsUrl:"https://www.ebay.com/deals",                                                    clearUrl:"https://www.ebay.com/deals",                                                    mapUrl:`https://www.google.com/maps/search/eBay+store+near+me` },
+      { icon:"🔍", name:"Google Shopping", tip:"Compare prices nearby!",       color:"#4285F4", dealsUrl:`https://www.google.com/search?tbm=shop&q=deals+near+me`,                       clearUrl:`https://www.google.com/search?tbm=shop&q=clearance+sale+near+me`,              mapUrl:`https://www.google.com/maps/search/shopping+near+me` },
+      { icon:"🗺️", name:"Local Stores",   tip:"Find stores near you!",        color:"#34d399", dealsUrl:`https://www.google.com/maps/search/stores+near+me`,                            clearUrl:`https://www.google.com/maps/search/clearance+stores+near+me`,                  mapUrl:`https://www.google.com/maps/search/stores+near+me` },
+    ]
+  };
+}
+
+let currentCountryCode = "US";
+
+function renderTodaysDeals(countryCode, flag, countryName) {
+  currentCountryCode = countryCode || "US";
+  const countryData = COUNTRY_DEALS[currentCountryCode];
+  const today = new Date().getDay();
+
+  let dayData;
+  if (countryData) {
+    dayData = countryData.days[today];
+  } else {
+    dayData = getGlobalDeals(flag, countryName);
+  }
+
+  const countryFlag = countryData ? countryData.flag : (flag || "🌍");
+  const countryLabel = countryData ? countryData.name : (countryName || "Global");
+
   document.getElementById("todays-deals").innerHTML = `
     <div style="font-size:15px;font-weight:800;color:#e2e8f0;margin-bottom:4px;">🔥 Today's Deals</div>
-    <div style="font-size:12px;color:#6366f1;font-weight:700;margin-bottom:4px;">${data.label}</div>
-    <div style="font-size:10px;color:#475569;margin-bottom:12px;">🇺🇸 US stores</div>
-    ${data.deals.map(d=>`
+    <div style="font-size:12px;color:#6366f1;font-weight:700;margin-bottom:2px;">${dayData.label}</div>
+    <div style="font-size:11px;color:#475569;margin-bottom:12px;">${countryFlag} ${countryLabel}</div>
+    ${dayData.deals.map(d=>`
       <div style="padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.05);">
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
           <span style="font-size:20px;">${d.icon}</span>
@@ -338,14 +620,12 @@ const US_STORES = {
   "dollar general": { category:"Discount & Closeout", color:"#FFD700", icon:"💵", deals:"https://www.dollargeneral.com/weekly-ad", clearance:"https://www.dollargeneral.com/weekly-ad" },
   "five below":     { category:"Discount & Closeout", color:"#A020F0", icon:"🎯", deals:"https://www.fivebelow.com/content/fivebelow/deals.html", clearance:"https://www.fivebelow.com/content/fivebelow/deals.html" },
   "family dollar":  { category:"Discount & Closeout", color:"#CC0000", icon:"💵", deals:"https://www.familydollar.com/weekly-ad/", clearance:"https://www.familydollar.com/weekly-ad/" },
-  "ollie":          { category:"Discount & Closeout", color:"#E31837", icon:"🏷️", deals:"https://www.ollies.us/deals/", clearance:"https://www.ollies.us/deals/" },
   "best buy":       { category:"Electronics",       color:"#003087", icon:"💻", deals:"https://www.bestbuy.com/site/misc/deal-of-the-day/pcmcat248000050016.c", clearance:"https://www.bestbuy.com/site/electronics/open-box/pcmcat211400050026.c" },
   "cvs":            { category:"Pharmacy",          color:"#CC0000", icon:"💊", deals:"https://www.cvs.com/weekly-ad/circulars", clearance:"https://www.cvs.com/weekly-ad/circulars" },
   "walgreens":      { category:"Pharmacy",          color:"#E31837", icon:"💊", deals:"https://www.walgreens.com/offers/offers.jsp", clearance:"https://www.walgreens.com/offers/offers.jsp" },
   "rite aid":       { category:"Pharmacy",          color:"#0073CF", icon:"💊", deals:"https://www.riteaid.com/weekly-ad.html", clearance:"https://www.riteaid.com/weekly-ad.html" },
   "old navy":       { category:"Fashion",           color:"#003087", icon:"👗", deals:"https://www.oldnavy.com/c/clearance", clearance:"https://www.oldnavy.com/c/clearance" },
   "h&m":            { category:"Fashion",           color:"#E50010", icon:"👗", deals:"https://www2.hm.com/en_us/sale.html", clearance:"https://www2.hm.com/en_us/sale.html" },
-  "gap":            { category:"Fashion",           color:"#1C1C1C", icon:"👕", deals:"https://www.gap.com/browse/category.do?cid=1118660", clearance:"https://www.gap.com/browse/category.do?cid=1118660" },
   "home depot":     { category:"Home & Hardware",   color:"#F96302", icon:"🔨", deals:"https://www.homedepot.com/b/Clearance/N-5yc1vZc9gu", clearance:"https://www.homedepot.com/b/Clearance/N-5yc1vZc9gu" },
   "lowe":           { category:"Home & Hardware",   color:"#004990", icon:"🔧", deals:"https://www.lowes.com/l/deals.html", clearance:"https://www.lowes.com/l/deals.html" },
   "ikea":           { category:"Home & Furniture",  color:"#003087", icon:"🪑", deals:"https://www.ikea.com/us/en/offers/", clearance:"https://www.ikea.com/us/en/offers/" },
@@ -353,7 +633,6 @@ const US_STORES = {
   "starbucks":      { category:"Café",              color:"#00704A", icon:"☕", deals:"https://www.starbucks.com/rewards", clearance:"https://www.starbucks.com/rewards" },
   "subway":         { category:"Fast Food",         color:"#009843", icon:"🥖", deals:"https://www.subway.com/en-US/MenuNutrition/Menu/Deals", clearance:"https://www.subway.com/en-US/MenuNutrition/Menu/Deals" },
   "chipotle":       { category:"Fast Food",         color:"#A81612", icon:"🌯", deals:"https://www.chipotle.com/rewards", clearance:"https://www.chipotle.com/rewards" },
-  "taco bell":      { category:"Fast Food",         color:"#702082", icon:"🌮", deals:"https://www.tacobell.com/rewards", clearance:"https://www.tacobell.com/rewards" },
   "burger king":    { category:"Fast Food",         color:"#EC7000", icon:"🍔", deals:"https://www.bk.com/offers", clearance:"https://www.bk.com/offers" },
   "wendy":          { category:"Fast Food",         color:"#E2231A", icon:"🍔", deals:"https://www.wendys.com/deals", clearance:"https://www.wendys.com/deals" },
   "dunkin":         { category:"Café",              color:"#FF6319", icon:"🍩", deals:"https://www.dunkindonuts.com/en/promotions", clearance:"https://www.dunkindonuts.com/en/promotions" },
@@ -361,7 +640,6 @@ const US_STORES = {
   "petsmart":       { category:"Pet Supplies",      color:"#E31837", icon:"🐾", deals:"https://www.petsmart.com/featured-sale-items/", clearance:"https://www.petsmart.com/featured-sale-items/" },
   "dick's":         { category:"Sports & Outdoors", color:"#003087", icon:"⚽", deals:"https://www.dickssportinggoods.com/f/deals", clearance:"https://www.dickssportinggoods.com/f/deals" },
   "rei":            { category:"Sports & Outdoors", color:"#4A7729", icon:"🏕️", deals:"https://www.rei.com/rei-garage", clearance:"https://www.rei.com/rei-garage" },
-  "academy":        { category:"Sports & Outdoors", color:"#003087", icon:"🏋️", deals:"https://www.academy.com/c/deals", clearance:"https://www.academy.com/c/deals" },
 };
 
 const US_ALIASES = {
@@ -373,7 +651,6 @@ const US_ALIASES = {
   "kroger":         ["kroger","kroger marketplace"],
   "whole foods":    ["whole foods","whole foods market"],
   "trader joe":     ["trader joe","trader joe's","trader joes"],
-  "ollie":          ["ollie","ollie's","ollies"],
   "big lots":       ["big lots","biglots"],
   "dollar general": ["dollar general","dollargeneral"],
   "dollar tree":    ["dollar tree","dollartree"],
@@ -390,9 +667,8 @@ const US_ALIASES = {
   "subway":         ["subway"],
   "chipotle":       ["chipotle"],
   "burger king":    ["burger king"],
-  "taco bell":      ["taco bell"],
-  "wendy":          ["wendy's","wendys","wendy"],
-  "dunkin":         ["dunkin","dunkin donuts","dunkin'"],
+  "wendy":          ["wendy's","wendys"],
+  "dunkin":         ["dunkin","dunkin donuts"],
   "petco":          ["petco"],
   "petsmart":       ["petsmart","pet smart"],
   "dick's":         ["dick's","dicks sporting"],
@@ -404,10 +680,8 @@ const US_ALIASES = {
   "lidl":           ["lidl"],
   "sprouts":        ["sprouts","sprouts farmers market"],
   "old navy":       ["old navy"],
-  "gap":            ["gap"],
   "ikea":           ["ikea"],
   "rei":            ["rei"],
-  "academy":        ["academy","academy sports"],
   "h&m":            ["h&m","h & m","hm"],
 };
 
@@ -428,24 +702,13 @@ const US_MAJOR_CHAINS = [
 const CLEARANCE_DB = {
   "walmart":        [{ day:"Monday",    text:"<b>New markdowns</b> on clothing & electronics!" },{ day:"Friday",    text:"<b>End-of-week price cuts</b> on groceries." },{ day:"💡 Tip",   text:"Walmart app → filter by <b>Clearance</b>." }],
   "target":         [{ day:"Monday",    text:"<b>New markdowns.</b> Arrive 8–10 AM!" },{ day:"Thursday",  text:"<b>Extra clearance</b> in apparel & home." },{ day:"💡 Tip",   text:"<b>RED tags</b> = clearance." }],
-  "kroger":         [{ day:"Wednesday", text:"<b>New weekly ad starts.</b> Best for meat!" },{ day:"Sunday",    text:"<b>Last day of ad</b> — double deals." },{ day:"💡 Tip",   text:"Look for <b>Manager's Special</b> stickers." }],
-  "aldi":           [{ day:"Wednesday", text:"<b>ALDI Finds</b> resets today!" },{ day:"Sunday",    text:"Check for <b>marked-down produce</b>." },{ day:"💡 Tip",   text:"Shop <b>early Wednesday</b> — sells out fast!" }],
-  "big lots":       [{ day:"Saturday",  text:"<b>New clearance items</b> added!" },{ day:"💡 Tip",   text:"<b>BIG Rewards</b> members get extra coupons." }],
+  "kroger":         [{ day:"Wednesday", text:"<b>New weekly ad starts.</b> Best for meat!" },{ day:"Sunday",    text:"<b>Last day of ad</b> — double deals." }],
+  "aldi":           [{ day:"Wednesday", text:"<b>ALDI Finds</b> resets today!" },{ day:"💡 Tip",   text:"Shop <b>early Wednesday</b> — sells out fast!" }],
+  "best buy":       [{ day:"Monday",    text:"<b>New open-box & clearance</b> listed!" },{ day:"💡 Tip",   text:"Ask staff about <b>open box items</b>." }],
+  "home depot":     [{ day:"Anytime",   text:"Look for <b>orange clearance stickers</b>!" },{ day:"💡 Tip",   text:"Check <b>Damaged Box cart</b> near checkout." }],
+  "cvs":            [{ day:"Sunday",    text:"<b>New weekly deals.</b> Beauty clearance." },{ day:"Saturday",  text:"<b>Last day</b> — extra markdowns." }],
+  "walgreens":      [{ day:"Sunday",    text:"<b>New weekly ad.</b> Personal care deals." }],
   "dollar general": [{ day:"Saturday",  text:"<b>New digital coupons</b> reset!" },{ day:"💡 Tip",   text:"<b>DG app</b> saves up to 50% on clearance." }],
-  "dollar tree":    [{ day:"Anytime",   text:"Everything <b>$1.25 or less</b>." },{ day:"💡 Tip",   text:"Check end caps after holidays." }],
-  "five below":     [{ day:"Monday",    text:"<b>New arrivals & markdowns</b> added." },{ day:"💡 Tip",   text:"Check <b>back of store</b> for clearance bins." }],
-  "family dollar":  [{ day:"Sunday",    text:"<b>New weekly ad</b> starts." },{ day:"💡 Tip",   text:"<b>Smart Coupons app</b> for savings." }],
-  "whole foods":    [{ day:"Wednesday", text:"<b>New weekly deals</b> mid-week." },{ day:"💡 Tip",   text:"<b>Amazon Prime</b> gets 10% off yellow tags." }],
-  "cvs":            [{ day:"Sunday",    text:"<b>New weekly deals.</b> Beauty clearance." },{ day:"Saturday",  text:"<b>Last day</b> — extra markdowns." },{ day:"💡 Tip",   text:"<b>CVS ExtraCare app</b> for savings." }],
-  "walgreens":      [{ day:"Sunday",    text:"<b>New weekly ad.</b> Personal care deals." },{ day:"💡 Tip",   text:"<b>myWalgreens</b> members get early access." }],
-  "best buy":       [{ day:"Monday",    text:"<b>New open-box & clearance</b> listed!" },{ day:"Weekend",   text:"<b>Open Box section</b> — discounted returns." },{ day:"💡 Tip",   text:"Ask staff about <b>open box items</b>." }],
-  "home depot":     [{ day:"Anytime",   text:"Look for <b>orange clearance stickers</b>!" },{ day:"Seasonal",  text:"<b>Spring & Fall</b> — garden items discounted." },{ day:"💡 Tip",   text:"Check <b>Damaged Box cart</b> near checkout." }],
-  "lowe":           [{ day:"Anytime",   text:"Look for <b>red clearance tags</b>." },{ day:"💡 Tip",   text:"Check <b>outdoor section</b> end of season." }],
-  "mcdonald":       [{ day:"Daily",     text:"<b>McDonald's app</b> — deals $1–$3." },{ day:"💡 Tip",   text:"App deals reset <b>Monday–Friday</b>." }],
-  "starbucks":      [{ day:"Afternoon", text:"<b>2–7 PM Happy Hour</b> — BOGO drinks." },{ day:"💡 Tip",   text:"<b>Starbucks Rewards</b> — earn stars." }],
-  "petco":          [{ day:"Monday",    text:"<b>New clearance</b> — pet food & accessories." },{ day:"💡 Tip",   text:"<b>Petco Vital Care app</b> discounts." }],
-  "petsmart":       [{ day:"Sunday",    text:"<b>New weekly deals</b> — food & toys." },{ day:"💡 Tip",   text:"<b>Treats loyalty program</b> savings." }],
-  "rei":            [{ day:"Anytime",   text:"Check <b>REI Outlet/Garage</b> for deals." },{ day:"💡 Tip",   text:"<b>REI Co-op members</b> get 10% back." }],
 };
 
 const CAT_COLORS = {
@@ -455,37 +718,30 @@ const CAT_COLORS = {
   "Home & Hardware":"#ea580c","Home & Furniture":"#a78bfa",
   "Fast Food":"#ef4444","Café":"#b45309",
   "Pet Supplies":"#14b8a6","Sports & Outdoors":"#84cc16",
-  "Other":"#94a3b8", "Global Store":"#6366f1",
+  "Other":"#94a3b8","Global Store":"#6366f1",
 };
 
 const ITEM_STORE_MAP = {
-  "birthday":["Grocery & General","Discount & Closeout","Grocery","Pharmacy"],
-  "party supplies":["Grocery & General","Discount & Closeout","Grocery","Pharmacy"],
-  "balloons":["Grocery & General","Discount & Closeout","Grocery","Pharmacy"],
+  "birthday":["Grocery & General","Discount & Closeout","Grocery"],
+  "party supplies":["Grocery & General","Discount & Closeout","Grocery"],
+  "balloons":["Grocery & General","Discount & Closeout","Grocery"],
   "decoration":["Grocery & General","Discount & Closeout"],
   "gifts":["Grocery & General","Discount & Closeout","Electronics","Fashion"],
   "birthday cake":["Grocery","Grocery & General"],
   "cake":["Grocery","Grocery & General"],
   "chips":["Grocery","Grocery & General","Discount & Closeout"],
   "snacks":["Grocery","Grocery & General","Discount & Closeout"],
-  "drinks":["Grocery","Grocery & General"],
   "groceries":["Grocery","Grocery & General"],
   "food":["Grocery","Grocery & General"],
   "vegetables":["Grocery","Grocery & General"],
   "fruits":["Grocery","Grocery & General"],
   "milk":["Grocery","Grocery & General"],
   "eggs":["Grocery","Grocery & General"],
-  "meat":["Grocery","Grocery & General"],
-  "bread":["Grocery","Grocery & General"],
   "medicine":["Pharmacy","Grocery & General"],
   "vitamins":["Pharmacy","Grocery & General"],
-  "shampoo":["Pharmacy","Grocery & General"],
-  "soap":["Pharmacy","Grocery & General"],
-  "baby":["Pharmacy","Grocery & General"],
   "tv":["Electronics","Grocery & General"],
   "laptop":["Electronics","Grocery & General"],
-  "phone":["Electronics","Pharmacy"],
-  "headphones":["Electronics","Discount & Closeout"],
+  "phone":["Electronics"],
   "gaming":["Electronics"],
   "shoes":["Fashion","Sports & Outdoors","Discount & Closeout"],
   "clothes":["Fashion","Grocery & General","Discount & Closeout"],
@@ -493,29 +749,20 @@ const ITEM_STORE_MAP = {
   "tools":["Home & Hardware"],
   "garden":["Home & Hardware","Grocery & General"],
   "sports":["Sports & Outdoors"],
-  "gym":["Sports & Outdoors"],
-  "camping":["Sports & Outdoors"],
   "pet food":["Pet Supplies","Grocery & General","Grocery"],
   "dog food":["Pet Supplies","Grocery & General","Grocery"],
   "cat food":["Pet Supplies","Grocery & General","Grocery"],
   "toys":["Grocery & General","Discount & Closeout"],
   "school supplies":["Grocery & General","Discount & Closeout"],
-  "backpack":["Sports & Outdoors","Fashion","Discount & Closeout"],
 };
 
 let allStoresGlobal = [];
 let currentPostal = "";
-let currentLat = 0;
-let currentLon = 0;
-let isUSLocation = false;
+let detectedCountryCode = "US";
 
 function setItem(item) {
   document.getElementById("itemInput").value = item;
   if (currentPostal) showItemResults(item);
-}
-
-function detectUSPostal(postal) {
-  return /^\d{5}$/.test(postal.trim());
 }
 
 function matchUSStore(name) {
@@ -534,14 +781,10 @@ function matchUSStore(name) {
 function makeGlobalStore(name) {
   const q = encodeURIComponent(name);
   return {
-    category: "Global Store",
-    color: "#6366f1",
-    icon: "🏪",
-    matched: true,
-    clearanceKey: null,
-    isUS: false,
-    deals: `https://www.google.com/search?q=${q}+deals+sale`,
-    clearance: `https://www.google.com/search?q=${q}+clearance+reduced+items`,
+    category:"Global Store", color:"#6366f1", icon:"🏪",
+    matched:true, clearanceKey:null, isUS:false,
+    deals:`https://www.google.com/search?q=${q}+deals+sale`,
+    clearance:`https://www.google.com/search?q=${q}+clearance+reduced+items`,
   };
 }
 
@@ -554,42 +797,14 @@ function findItemCategories(item) {
   return null;
 }
 
-function getItemShopLink(storeKey, storeName, item) {
-  const q = encodeURIComponent(item);
-  const links = {
-    "walmart":        `https://www.walmart.com/search?q=${q}`,
-    "target":         `https://www.target.com/s?searchTerm=${q}`,
-    "kroger":         `https://www.kroger.com/search?query=${q}`,
-    "whole foods":    `https://www.wholefoodsmarket.com/search?text=${q}`,
-    "dollar general": `https://www.dollargeneral.com/search#q=${q}`,
-    "dollar tree":    `https://www.dollartree.com/search?q=${q}`,
-    "five below":     `https://www.fivebelow.com/search?q=${q}`,
-    "big lots":       `https://www.biglots.com/search?q=${q}`,
-    "best buy":       `https://www.bestbuy.com/site/searchpage.jsp?st=${q}`,
-    "cvs":            `https://www.cvs.com/search/${q}`,
-    "walgreens":      `https://www.walgreens.com/search/results.jsp?Ntt=${q}`,
-    "home depot":     `https://www.homedepot.com/s/${q}`,
-    "lowe":           `https://www.lowes.com/search?searchTerm=${q}`,
-    "petco":          `https://www.petco.com/shop/en/petcostore/search?q=${q}`,
-    "petsmart":       `https://www.petsmart.com/search?q=${q}`,
-    "rei":            `https://www.rei.com/search?q=${q}`,
-  };
-  if (storeKey && links[storeKey]) return links[storeKey];
-  return `https://www.google.com/search?q=${encodeURIComponent(item+' '+storeName)}`;
-}
-
 function showItemResults(item) {
   const itemResults = document.getElementById("item-results");
   if (!item.trim() || !allStoresGlobal.length) { itemResults.innerHTML = ""; return; }
-
   const cats = findItemCategories(item);
   let matchingStores = cats
     ? allStoresGlobal.filter(s => cats.includes(s.category))
-    : allStoresGlobal.filter(s => s.matched).slice(0, 8);
-
-  if (!matchingStores.length) {
-    matchingStores = allStoresGlobal.filter(s => s.matched).slice(0, 6);
-  }
+    : allStoresGlobal.filter(s => s.matched).slice(0,8);
+  if (!matchingStores.length) matchingStores = allStoresGlobal.filter(s => s.matched).slice(0,6);
 
   const googleLink = `https://www.google.com/search?q=${encodeURIComponent(item+' near '+currentPostal)}&tbm=shop`;
   const mapsLink = `https://www.google.com/maps/search/${encodeURIComponent(item+' store near '+currentPostal)}`;
@@ -599,8 +814,10 @@ function showItemResults(item) {
       <div class="item-title">🔍 "<b style="color:#fbbf24">${item}</b>" near <b style="color:#a78bfa">${currentPostal}</b></div>
       <div class="item-grid">
         ${matchingStores.map(store => {
-          const shopLink = getItemShopLink(store.clearanceKey, store.name, item);
           const storeMapsLink = `https://www.google.com/maps/search/${encodeURIComponent(store.name+' near '+currentPostal)}`;
+          const shopLink = store.isUS
+            ? (US_STORES[store.clearanceKey]?.deals || store.deals)
+            : `https://www.google.com/search?q=${encodeURIComponent(item+' '+store.name)}`;
           return `
             <div class="item-card">
               <div class="item-card-top">
@@ -628,44 +845,36 @@ async function searchStores() {
   const postal = document.getElementById("postalInput").value.trim();
   const item = document.getElementById("itemInput").value.trim();
   const errorMsg = document.getElementById("errorMsg");
-
   if (!postal) { errorMsg.textContent = "⚠️ Please enter a postal code."; return; }
-  if (postal.length < 2) { errorMsg.textContent = "⚠️ Please enter a valid postal code."; return; }
-
   errorMsg.textContent = "";
   currentPostal = postal;
-  isUSLocation = detectUSPostal(postal);
 
   document.getElementById("main-container").innerHTML = '<div class="loading">🔍 Finding stores near ' + postal + '...</div>';
   document.getElementById("item-results").innerHTML = "";
   document.getElementById("infoBar").style.display = "none";
 
   try {
-    // Geocode the postal code — works for ANY country
-    const geoUrl = `https://nominatim.openstreetmap.org/search?postalcode=${encodeURIComponent(postal)}&format=json&limit=1&addressdetails=1`;
-    const geoRes = await fetch(geoUrl, { headers:{"Accept-Language":"en"} });
+    const geoRes = await fetch(`https://nominatim.openstreetmap.org/search?postalcode=${encodeURIComponent(postal)}&format=json&limit=1&addressdetails=1`, { headers:{"Accept-Language":"en"} });
     const geoData = await geoRes.json();
-
     if (!geoData.length) throw new Error("Postal code not found. Please check and try again.");
 
     const { lat, lon, display_name, address } = geoData[0];
-    currentLat = lat;
-    currentLon = lon;
-
-    // Detect country
     const country = address?.country || "";
-    const countryCode = address?.country_code?.toUpperCase() || "";
+    const countryCode = address?.country_code?.toUpperCase() || "US";
+    detectedCountryCode = countryCode;
 
-    // Show country badge
     const countryFlags = {
-      "US":"🇺🇸", "GB":"🇬🇧", "IN":"🇮🇳", "AU":"🇦🇺", "CA":"🇨🇦",
-      "DE":"🇩🇪", "FR":"🇫🇷", "JP":"🇯🇵", "BR":"🇧🇷", "MX":"🇲🇽",
-      "IT":"🇮🇹", "ES":"🇪🇸", "NL":"🇳🇱", "SG":"🇸🇬", "AE":"🇦🇪",
-      "NZ":"🇳🇿", "ZA":"🇿🇦", "NG":"🇳🇬", "PH":"🇵🇭", "MY":"🇲🇾",
+      "US":"🇺🇸","GB":"🇬🇧","IN":"🇮🇳","AU":"🇦🇺","CA":"🇨🇦",
+      "DE":"🇩🇪","FR":"🇫🇷","JP":"🇯🇵","BR":"🇧🇷","MX":"🇲🇽",
+      "IT":"🇮🇹","ES":"🇪🇸","NL":"🇳🇱","SG":"🇸🇬","AE":"🇦🇪",
+      "NZ":"🇳🇿","ZA":"🇿🇦","NG":"🇳🇬","PH":"🇵🇭","MY":"🇲🇾",
+      "PK":"🇵🇰","BD":"🇧🇩","LK":"🇱🇰","NP":"🇳🇵",
     };
     const flag = countryFlags[countryCode] || "🌍";
 
-    // Search stores using Overpass — worldwide, no country filter!
+    // ✅ Update Today's Deals based on detected country!
+    renderTodaysDeals(countryCode, flag, country);
+
     const query = `
       [out:json][timeout:30];
       (
@@ -674,7 +883,6 @@ async function searchStores() {
         node["brand"](around:5000,${lat},${lon});
         way["shop"](around:5000,${lat},${lon});
         way["amenity"~"restaurant|cafe|fast_food|pharmacy|supermarket"](around:5000,${lat},${lon});
-        way["brand"](around:5000,${lat},${lon});
       );
       out body 200;
     `;
@@ -689,34 +897,25 @@ async function searchStores() {
       const name = el.tags?.name || el.tags?.brand;
       if (!name || seen.has(name.toLowerCase())) continue;
       seen.add(name.toLowerCase());
-
-      // Try to match US store first
       const usMatch = matchUSStore(name);
       if (usMatch) {
         allStoresGlobal.push({ id:el.id, name, ...usMatch });
       } else {
-        // Global store — use Google search links
         allStoresGlobal.push({ id:el.id, name, ...makeGlobalStore(name) });
       }
     }
 
-    // Add US major chains if US location and not already found
-    if (isUSLocation || countryCode === "US") {
+    if (countryCode === "US") {
       const foundNames = allStoresGlobal.map(s => s.name.toLowerCase());
       US_MAJOR_CHAINS.forEach(chain => {
         const aliases = US_ALIASES[chain.key] || [chain.key];
         const alreadyFound = foundNames.some(n => aliases.some(a => n.includes(a.toLowerCase())));
         if (!alreadyFound && US_STORES[chain.key]) {
-          allStoresGlobal.push({
-            id:"manual_"+chain.key, name:chain.name,
-            ...US_STORES[chain.key],
-            matched:true, clearanceKey:chain.key, isManual:true, isUS:true,
-          });
+          allStoresGlobal.push({ id:"manual_"+chain.key, name:chain.name, ...US_STORES[chain.key], matched:true, clearanceKey:chain.key, isManual:true, isUS:true });
         }
       });
     }
 
-    // Sort: US known stores first, then global
     allStoresGlobal.sort((a,b) => {
       if (a.isUS && !b.isUS) return -1;
       if (!a.isUS && b.isUS) return 1;
@@ -734,7 +933,7 @@ async function searchStores() {
     renderAll(allStoresGlobal, postal, flag);
 
   } catch(e) {
-    document.getElementById("main-container").innerHTML = `<div class="empty">⚠️ ${e.message || "Something went wrong. Please try again."}</div>`;
+    document.getElementById("main-container").innerHTML = `<div class="empty">⚠️ ${e.message || "Something went wrong."}</div>`;
   }
 }
 
@@ -806,7 +1005,8 @@ document.getElementById("itemInput").addEventListener("input", e => {
   else document.getElementById("item-results").innerHTML = "";
 });
 
-renderTodaysDeals();
+// Show US deals by default on page load
+renderTodaysDeals("US", "🇺🇸", "United States");
 </script>
 </body>
 </html>
