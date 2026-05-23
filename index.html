@@ -862,7 +862,9 @@ async function searchStores() {
   document.getElementById("infoBar").style.display = "none";
 
   try {
-    const geoRes = await fetch(`https://nominatim.openstreetmap.org/search?postalcode=${encodeURIComponent(postal)}&format=json&limit=1&addressdetails=1`, {headers:{"Accept-Language":"en"}});
+    const isUSZip = /^\d{5}$/.test(postal);
+    const countryParam = isUSZip ? "&countrycodes=us" : "";
+    const geoRes = await fetch(`https://nominatim.openstreetmap.org/search?postalcode=${encodeURIComponent(postal)}&format=json&limit=1&addressdetails=1${countryParam}`, {headers:{"Accept-Language":"en"}});
     const geoData = await geoRes.json();
     if (!geoData.length) throw new Error("Postal code not found. Please check and try again.");
 
