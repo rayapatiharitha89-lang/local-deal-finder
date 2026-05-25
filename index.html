@@ -24,20 +24,24 @@
       margin-bottom: 8px;
     }
     .subtitle { color: #94a3b8; font-size: 15px; margin-bottom: 24px; }
-    .search-bar { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
+    .search-bar { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; margin-bottom: 8px; }
     input {
       background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);
       border-radius: 12px; padding: 14px 20px; font-size: 16px; color: #f1f5f9; outline: none;
     }
     input::placeholder { color: #94a3b8; }
-    #postalInput { width: 200px; letter-spacing: 2px; }
-    #itemInput { width: 240px; }
+    #postalInput { width: 180px; letter-spacing: 2px; }
+    #itemInput { width: 260px; }
     .search-btn {
       background: linear-gradient(135deg, #6366f1, #8b5cf6);
       border: none; border-radius: 12px; padding: 14px 28px;
       font-size: 16px; font-weight: 700; color: #fff; cursor: pointer;
     }
     .search-btn:hover { opacity: 0.9; }
+    .location-hint {
+      font-size: 12px; color:#475569; margin-bottom: 10px;
+    }
+    .location-hint span { color: #34d399; font-weight: 600; }
     .error { color: #f87171; margin-top: 10px; font-size: 14px; }
     .info-bar {
       max-width: 1200px; margin: 20px auto 0; padding: 12px 20px;
@@ -160,16 +164,11 @@
     .divider { margin: 10px 0 20px; border-bottom: 1px solid rgba(255,255,255,0.07); }
     .empty { text-align: center; padding: 60px 20px; color: #334155; font-size: 16px; }
     .loading { text-align: center; padding: 40px; color: #94a3b8; font-size: 16px; }
-    .not-found-box {
-      background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.09);
-      border-radius: 14px; padding: 20px; margin-bottom: 16px;
-      color: #94a3b8; font-size: 14px; line-height: 1.7;
-    }
     @media (max-width: 600px) {
       h1 { font-size: 26px; }
       .hero { padding: 24px 16px 20px; }
-      #postalInput { width: 140px; }
-      #itemInput { width: 180px; }
+      #postalInput { width: 130px; }
+      #itemInput { width: 200px; }
       .search-btn { padding: 14px 20px; font-size: 15px; }
       #todays-deals { width: 100%; position: relative; top: 0; }
       .main-layout { flex-direction: column; }
@@ -183,19 +182,20 @@
 <div class="hero">
   <div style="font-size:44px;margin-bottom:10px;">🗺️</div>
   <h1>Local Deal Finder</h1>
-  <p class="subtitle">Find nearby stores worldwide — enter any postal code!</p>
+  <p class="subtitle">Find nearby stores — just type an item and search!</p>
   <div class="search-bar">
-    <input type="text" id="postalInput" placeholder="Postal / ZIP code" />
-    <input type="text" id="itemInput" placeholder="Item (e.g. chips, shoes)" />
+    <input type="text" id="postalInput" placeholder="ZIP (optional)" />
+    <input type="text" id="itemInput" placeholder="Item (e.g. chicken, shoes)" />
     <button class="search-btn" onclick="searchStores()">Search →</button>
   </div>
-  <div style="text-align:center;margin-top:8px;font-size:12px;color:#475569;">
-    🇺🇸 18106 &nbsp;|&nbsp; 🇮🇳 400001 &nbsp;|&nbsp; 🇬🇧 SW1A 1AA &nbsp;|&nbsp; 🇦🇺 2000 &nbsp;|&nbsp; 🇨🇦 M5V 2T6 &nbsp;|&nbsp; 🌍 Any country!
+  <div class="location-hint">
+    📍 No ZIP? <span>We auto-detect your location!</span> &nbsp;|&nbsp;
+    🌍 Works worldwide!
   </div>
-  <div class="suggestions" style="margin-top:16px;">
-    <span class="suggestion-pill" onclick="setItem('party supplies')">🎉 Party Supplies</span>
+  <div class="suggestions" style="margin-top:8px;">
+    <span class="suggestion-pill" onclick="setItem('chicken')">🍗 Chicken</span>
     <span class="suggestion-pill" onclick="setItem('birthday cake')">🎂 Birthday Cake</span>
-    <span class="suggestion-pill" onclick="setItem('gifts')">🎁 Gifts</span>
+    <span class="suggestion-pill" onclick="setItem('party supplies')">🎉 Party Supplies</span>
     <span class="suggestion-pill" onclick="setItem('chips')">🍟 Chips</span>
     <span class="suggestion-pill" onclick="setItem('laptop')">💻 Laptop</span>
     <span class="suggestion-pill" onclick="setItem('shoes')">👟 Shoes</span>
@@ -203,6 +203,8 @@
     <span class="suggestion-pill" onclick="setItem('pet food')">🐾 Pet Food</span>
     <span class="suggestion-pill" onclick="setItem('tools')">🔨 Tools</span>
     <span class="suggestion-pill" onclick="setItem('groceries')">🥬 Groceries</span>
+    <span class="suggestion-pill" onclick="setItem('gifts')">🎁 Gifts</span>
+    <span class="suggestion-pill" onclick="setItem('milk')">🥛 Milk</span>
   </div>
   <div class="error" id="errorMsg"></div>
 </div>
@@ -220,8 +222,12 @@
   <div class="right-content">
     <div id="item-results"></div>
     <div id="main-container">
-      <div class="empty">🌍<br><br>Enter any postal code worldwide to find nearby stores!<br><br>
-        <span style="font-size:13px;">🇺🇸 US ZIP · 🇮🇳 India PIN · 🇬🇧 UK Postcode · 🇦🇺 AU · 🇨🇦 CA · 🌍 Any country!</span>
+      <div class="empty">🏪<br><br>
+        Type any item and click <b style="color:#a78bfa">Search</b>!<br><br>
+        <span style="font-size:13px;color:#475569;">
+          📍 ZIP code is optional — we auto-detect your location!<br>
+          🌍 Works in US, India, UK, Australia & worldwide!
+        </span>
       </div>
     </div>
   </div>
@@ -299,7 +305,6 @@ const COUNTRY_DEALS = {
       ]},
     }
   },
-
   "IN":{
     flag:"🇮🇳",name:"India",
     days:{
@@ -361,7 +366,6 @@ const COUNTRY_DEALS = {
       ]},
     }
   },
-
   "GB":{
     flag:"🇬🇧",name:"United Kingdom",
     days:{
@@ -423,7 +427,6 @@ const COUNTRY_DEALS = {
       ]},
     }
   },
-
   "AU":{
     flag:"🇦🇺",name:"Australia",
     days:{
@@ -485,7 +488,6 @@ const COUNTRY_DEALS = {
       ]},
     }
   },
-
   "CA":{
     flag:"🇨🇦",name:"Canada",
     days:{
@@ -695,7 +697,6 @@ const US_ALIASES = {
   "h&m":           ["h&m","h & m","hm"],
 };
 
-// ✅ FIX 2: Only truly nationwide US chains auto-added
 const TRULY_NATIONWIDE = ["walmart","dollar general","dollar tree","cvs","walgreens","mcdonald","starbucks"];
 
 const US_MAJOR_CHAINS = [
@@ -730,7 +731,7 @@ const CAT_COLORS = {
   "Other":"#94a3b8","Global Store":"#6366f1",
 };
 
-// ✅ FIX 1: Grocery items only show GROCERY stores
+// ✅ FIX: Grocery items → Grocery stores only!
 const ITEM_STORE_MAP = {
   "birthday":      ["Grocery & General","Discount & Closeout","Grocery"],
   "party supplies":["Grocery & General","Discount & Closeout","Grocery"],
@@ -796,10 +797,13 @@ const ITEM_STORE_MAP = {
 
 let allStoresGlobal = [];
 let currentPostal = "";
+let detectedLat = null;
+let detectedLon = null;
+let detectedCountryCode = "US";
 
 function setItem(item) {
   document.getElementById("itemInput").value = item;
-  if (currentPostal) showItemResults(item);
+  if (currentPostal || detectedLat) searchStores();
 }
 
 function matchUSStore(name) {
@@ -834,24 +838,30 @@ function findItemCategories(item) {
   return null;
 }
 
-function showItemResults(item) {
+function showItemResults(item, locationLabel) {
   const itemResults = document.getElementById("item-results");
   if (!item.trim() || !allStoresGlobal.length) { itemResults.innerHTML = ""; return; }
   const cats = findItemCategories(item);
+
+  // Option B: show nearby stores even if item not in map
   let matchingStores = cats
     ? allStoresGlobal.filter(s => cats.includes(s.category))
-    : allStoresGlobal.filter(s => s.matched).slice(0,8);
-  if (!matchingStores.length) matchingStores = allStoresGlobal.filter(s => s.matched).slice(0,6);
+    : [];
 
-  const googleLink = `https://www.google.com/search?q=${encodeURIComponent(item+' near '+currentPostal)}&tbm=shop`;
-  const mapsLink = `https://www.google.com/maps/search/${encodeURIComponent(item+' store near '+currentPostal)}`;
+  // If no category match — show ALL nearby stores (Option B)
+  if (!matchingStores.length) {
+    matchingStores = allStoresGlobal.filter(s => s.matched).slice(0, 8);
+  }
+
+  const googleLink = `https://www.google.com/search?q=${encodeURIComponent(item+' near '+locationLabel)}&tbm=shop`;
+  const mapsLink = `https://www.google.com/maps/search/${encodeURIComponent(item+' store near '+locationLabel)}`;
 
   itemResults.innerHTML = `
     <div class="item-section">
-      <div class="item-title">🔍 "<b style="color:#fbbf24">${item}</b>" near <b style="color:#a78bfa">${currentPostal}</b></div>
+      <div class="item-title">🔍 "<b style="color:#fbbf24">${item}</b>" near <b style="color:#a78bfa">${locationLabel}</b></div>
       <div class="item-grid">
         ${matchingStores.map(store => {
-          const storeMapsLink = `https://www.google.com/maps/search/${encodeURIComponent(store.name+' near '+currentPostal)}`;
+          const storeMapsLink = `https://www.google.com/maps/search/${encodeURIComponent(store.name+' near '+locationLabel)}`;
           const shopLink = store.isUS
             ? (US_STORES[store.clearanceKey]?.deals || store.deals)
             : `https://www.google.com/search?q=${encodeURIComponent(item+' '+store.name)}`;
@@ -879,31 +889,56 @@ function showItemResults(item) {
 }
 
 async function searchStores() {
-  const postal = document.getElementById("postalInput").value.trim();
+  let postal = document.getElementById("postalInput").value.trim();
   const item = document.getElementById("itemInput").value.trim();
   const errorMsg = document.getElementById("errorMsg");
-  if (!postal) { errorMsg.textContent = "⚠️ Please enter a postal code."; return; }
-  errorMsg.textContent = "";
-  currentPostal = postal;
 
-  document.getElementById("main-container").innerHTML = '<div class="loading">🔍 Finding stores near ' + postal + '...</div>';
+  if (!postal && !item) {
+    errorMsg.textContent = "⚠️ Please enter an item to search!";
+    return;
+  }
+  errorMsg.textContent = "";
+
+  document.getElementById("main-container").innerHTML = '<div class="loading">🔍 Finding stores near you...</div>';
   document.getElementById("item-results").innerHTML = "";
   document.getElementById("infoBar").style.display = "none";
 
   try {
-    // ✅ FIX 3: Force US results for 5-digit ZIP codes
-    const isUSZip = /^\d{5}$/.test(postal);
-    const countryParam = isUSZip ? "&countrycodes=us" : "";
-    const geoRes = await fetch(`https://nominatim.openstreetmap.org/search?postalcode=${encodeURIComponent(postal)}&format=json&limit=1&addressdetails=1${countryParam}`, {headers:{"Accept-Language":"en"}});
-    const geoData = await geoRes.json();
-    if (!geoData.length) throw new Error("Postal code not found. Please check and try again.");
+    let lat, lon, display_name, countryCode, country, flag;
 
-    const {lat, lon, display_name, address} = geoData[0];
-    const country = address?.country || "";
-    const countryCode = address?.country_code?.toUpperCase() || "US";
-    const flag = COUNTRY_FLAGS[countryCode] || "🌍";
+    if (postal) {
+      // ── Use entered postal code ──
+      const isUSZip = /^\d{5}$/.test(postal);
+      const countryParam = isUSZip ? "&countrycodes=us" : "";
+      const geoRes = await fetch(`https://nominatim.openstreetmap.org/search?postalcode=${encodeURIComponent(postal)}&format=json&limit=1&addressdetails=1${countryParam}`, {headers:{"Accept-Language":"en"}});
+      const geoData = await geoRes.json();
+      if (!geoData.length) throw new Error("Postal code not found. Please check and try again.");
+      lat = geoData[0].lat;
+      lon = geoData[0].lon;
+      display_name = geoData[0].display_name;
+      country = geoData[0].address?.country || "";
+      countryCode = geoData[0].address?.country_code?.toUpperCase() || "US";
+      currentPostal = postal;
 
-    // Update Today's Deals to match searched country!
+    } else {
+      // ── Auto-detect location from IP ──
+      document.getElementById("main-container").innerHTML = '<div class="loading">📍 Detecting your location...</div>';
+      const ipData = await fetch("https://ipapi.co/json/").then(r=>r.json());
+      lat = ipData.latitude;
+      lon = ipData.longitude;
+      country = ipData.country_name || "";
+      countryCode = ipData.country_code || "US";
+      postal = ipData.postal || ipData.city || "your area";
+      display_name = `${ipData.city || ""}, ${ipData.region || ""}, ${country}`;
+      currentPostal = postal;
+      document.getElementById("postalInput").value = postal;
+      document.getElementById("main-container").innerHTML = '<div class="loading">🔍 Finding stores near you...</div>';
+    }
+
+    detectedCountryCode = countryCode;
+    flag = COUNTRY_FLAGS[countryCode] || "🌍";
+
+    // Update Today's Deals sidebar!
     renderTodaysDeals(countryCode, flag, country);
 
     const query = `
@@ -936,7 +971,6 @@ async function searchStores() {
       }
     }
 
-    // ✅ FIX 2: Only add TRULY nationwide chains automatically
     if (countryCode === "US") {
       const foundNames = allStoresGlobal.map(s => s.name.toLowerCase());
       US_MAJOR_CHAINS.forEach(chain => {
@@ -957,16 +991,17 @@ async function searchStores() {
       return 0;
     });
 
+    const locationLabel = display_name.split(",").slice(0,3).join(",");
     document.getElementById("storeCount").textContent = allStoresGlobal.length;
-    document.getElementById("locationName").textContent = display_name.split(",").slice(0,3).join(",");
+    document.getElementById("locationName").textContent = locationLabel;
     document.getElementById("countryBadge").innerHTML = `<span style="margin-left:8px;background:rgba(52,211,153,0.15);border:1px solid rgba(52,211,153,0.3);color:#34d399;border-radius:8px;padding:2px 10px;font-size:12px;font-weight:700;">${flag} ${country}</span>`;
     document.getElementById("infoBar").style.display = "block";
 
-    if (item) showItemResults(item);
+    if (item) showItemResults(item, locationLabel);
     renderAll(allStoresGlobal, postal, flag);
 
   } catch(e) {
-    document.getElementById("main-container").innerHTML = `<div class="empty">⚠️ ${e.message || "Something went wrong."}</div>`;
+    document.getElementById("main-container").innerHTML = `<div class="empty">⚠️ ${e.message || "Something went wrong. Please try again."}</div>`;
   }
 }
 
@@ -1033,18 +1068,15 @@ function renderAll(stores, postal, flag) {
 
 document.getElementById("postalInput").addEventListener("keydown", e => { if(e.key==="Enter") searchStores(); });
 document.getElementById("itemInput").addEventListener("keydown", e => { if(e.key==="Enter") searchStores(); });
-document.getElementById("itemInput").addEventListener("input", e => {
-  if(currentPostal && e.target.value.trim()) showItemResults(e.target.value.trim());
-  else document.getElementById("item-results").innerHTML = "";
-});
 
-// ✅ AUTO-DETECT USER'S COUNTRY ON PAGE LOAD!
+// ✅ AUTO-DETECT COUNTRY ON PAGE LOAD!
 fetch("https://ipapi.co/json/")
   .then(r => r.json())
   .then(data => {
     const code = data.country_code || "US";
     const name = data.country_name || "United States";
     const flag = COUNTRY_FLAGS[code] || "🌍";
+    detectedCountryCode = code;
     renderTodaysDeals(code, flag, name);
   })
   .catch(() => {
